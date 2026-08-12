@@ -1,7 +1,7 @@
 [project]
 name = "discord-pokeguess"
-version = "0.1.0"
-authors = [{ name = "Apollo-Roboto", email = "Apollo_Roboto@outlook.com" }]
+version = "0.1.1"
+authors = [{ name = "ApolloRoboto", email = "Apollo_Roboto@outlook.com" }]
 description = "Who's That Pokemon! "
 readme = "README.md"
 license = "MIT"
@@ -16,13 +16,13 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = [
-    "python-dotenv==0.21.0",
-    "requests==2.30.0",
+    "python-dotenv==1.2.2",
+    "requests==2.34.2",
     "discord.py==2.2.3",
-    "pillow==10.0.1",
+    "pillow==12.3.0",
     "zalgo-text==0.6",
-    "Levenshtein==0.20.8",
-    "prometheus-client==0.20.0",
+    "Levenshtein==0.27.4",
+    "prometheus-client==0.26.0",
     "discord-ext-prometheus==0.2.0",
 ]
 
@@ -30,7 +30,7 @@ dependencies = [
 dev = ["black", "pylint"]
 
 [project.urls]
-"Source" = "https://github.com/Apollo-Roboto/discord-pokeguess"
+"Source" = "https://github.com/ApolloRoboto/discord-pokeguess"
 
 [build-system]
 requires = ["hatchling"]
