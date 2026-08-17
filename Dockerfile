@@ -1,6 +1,7 @@
 FROM python:3.14-slim
 
 COPY ./dist/*.whl /tmp/
+COPY ./resources/ /app/resources/
 
 RUN pip install --no-cache-dir /tmp/*.whl && \
     rm -f /tmp/*.whl

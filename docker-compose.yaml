@@ -7,11 +7,12 @@ services:
     environment:
       - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN}
     volumes:
-      - type: volume
-        source: pokemonData
-        target: /app/pokemons
+      - ./pokemons:/app/pokemons
+      # - type: volume
+      #   source: pokemonData
+      #   target: /app/pokemons
     ports:
       - 8000:8000 # Prometheus
 
 volumes:
-  pokemonData:
+  # pokemonData:

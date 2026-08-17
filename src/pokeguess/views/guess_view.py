@@ -30,6 +30,7 @@ failed_text: list[str] = [
 close_answer_text: list[str] = [
     "You're pretty close.",
     "That's almost it!",
+    "Almost!",
     "So close!",
     "You're almost there!",
     "You're on the right track!",
@@ -103,7 +104,7 @@ class HintEmbed(Embed):
             self.title = "I can't give more hints!"
             return
 
-        self.title = "Here is a hint"
+        self.title = "Here's a hint"
 
         self.description = "The name is: "
 
