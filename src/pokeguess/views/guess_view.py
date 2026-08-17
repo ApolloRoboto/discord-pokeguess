@@ -1,8 +1,9 @@
-from datetime import datetime, timezone
 import random
-from discord import Embed, Color, File
-from zalgo_text.zalgo import zalgo
+from datetime import datetime, timezone
+
+from discord import Color, Embed, File
 from models.guesser import Guesser
+from zalgo_text.zalgo import zalgo
 
 hidden_color = Color.from_str("#2f3136")
 revealed_color = Color.from_str("#2f3136")
@@ -109,7 +110,8 @@ class HintEmbed(Embed):
             if i <= guesser.hints_given:
                 self.description += " " + letter
             else:
-                self.description += " \_"
+                # note, there was a reason for this \, need to test
+                self.description += r" \_"
 
 
 class HiddenEmbed(Embed):

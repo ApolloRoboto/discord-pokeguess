@@ -1,8 +1,8 @@
 import logging
+
 from discord import Guild
 from discord.ext import commands
 from discord.ext.commands import CommandNotFound
-
 
 log = logging.getLogger("event")
 

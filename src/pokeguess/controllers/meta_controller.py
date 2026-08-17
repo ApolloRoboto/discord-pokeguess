@@ -1,6 +1,7 @@
 import logging
+
+from discord import File, Interaction, app_commands
 from discord.ext import commands
-from discord import app_commands, Interaction, File
 from views import meta_view
 
 log = logging.getLogger(__name__.removesuffix("_controller"))
@@ -17,7 +18,7 @@ class MetaController(commands.Cog):
         description="Invite this bot to your server!",
     )
     async def invite_command(self, interaction: Interaction) -> None:
-        log.info(f"Interaction: invite")
+        log.info("Interaction: invite")
 
         view = meta_view.InviteView(self.bot.user)
         file = File("./resources/littlePokemonBanner.png")

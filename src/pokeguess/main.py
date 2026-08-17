@@ -1,15 +1,16 @@
-import logging
 import asyncio
+import logging
 import os
 import sys
 from pathlib import Path
+
+import controllers
+from discord import Intents
 from discord.ext import commands
-from discord import Intents, Interaction, InteractionType
 from discord.ext.prometheus import PrometheusCog, PrometheusLoggingHandler
 from dotenv import load_dotenv
-import controllers
-from services.pokedex_service import PokedexService
 from services.image_service import ImageService
+from services.pokedex_service import PokedexService
 
 logging.basicConfig(
     stream=sys.stdout,

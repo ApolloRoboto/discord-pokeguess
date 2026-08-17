@@ -1,8 +1,9 @@
-from pathlib import Path
-from pkgutil import iter_modules
-from importlib import import_module
 import inspect
 import logging
+from importlib import import_module
+from pathlib import Path
+from pkgutil import iter_modules
+
 from discord.ext.commands import Bot
 
 log = logging.getLogger(__name__)

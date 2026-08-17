@@ -1,13 +1,13 @@
-import os
-from pathlib import Path
 import logging
-import re
-from typing import Union, Callable, Awaitable
+import os
+from collections.abc import Awaitable, Callable
 from datetime import datetime
+from pathlib import Path
+
 from discord import TextChannel
 from discord.ext import tasks
-from models.pokemon import Pokemon
 from models.guesser import Guesser
+from models.pokemon import Pokemon
 from prometheus_client import Counter
 
 log = logging.getLogger(__name__)
@@ -96,7 +96,7 @@ class GuesserService:
             except:
                 log.exception("Unhandled exception while calling on_guesser_end_event")
 
-    def get_guesser(self, channel: Union[TextChannel, int]) -> Guesser:
+    def get_guesser(self, channel: TextChannel | int) -> Guesser:
         if isinstance(channel, int):
             return self.active_guess.get(channel, None)
 

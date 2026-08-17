@@ -1,5 +1,5 @@
-from discord import Member, ButtonStyle
 import discord
+from discord import ButtonStyle, Member
 
 INVITE_URL = "https://discord.com/api/oauth2/authorize?client_id=1052405591680757961&permissions=2147518464&scope=bot"
 

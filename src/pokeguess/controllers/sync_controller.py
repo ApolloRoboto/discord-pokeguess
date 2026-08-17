@@ -1,6 +1,6 @@
 import logging
+
 from discord.ext import commands
-from discord.ext.commands import Context
 
 log = logging.getLogger(__name__.removesuffix("_controller"))
 

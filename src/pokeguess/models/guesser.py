@@ -1,6 +1,7 @@
-from datetime import datetime
 from dataclasses import dataclass
-from discord import TextChannel, Member
+from datetime import datetime
+
+from discord import Member, TextChannel
 from models.pokemon import Pokemon
 
 

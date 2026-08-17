@@ -1,21 +1,22 @@
-import os
-from datetime import datetime, timedelta
-import random
-from pathlib import Path
 import logging
+import os
+import random
 import tempfile
 import uuid
-from discord.ext import commands
-from discord import app_commands, Interaction, File, Message
-from discord.app_commands import Choice, Range
+from datetime import datetime, timedelta
+from pathlib import Path
+
 import discord
 import Levenshtein
+from discord import File, Interaction, Message, app_commands
+from discord.app_commands import Choice, Range
+from discord.ext import commands
 from models.guesser import Guesser
 from models.pokemon import Pokemon
-from views import guess_view
-from services.guesser_service import GuesserService, GuesserAlreadyActiveException
-from services.image_service import ImageService
 from prometheus_client import Counter
+from services.guesser_service import GuesserAlreadyActiveException, GuesserService
+from services.image_service import ImageService
+from views import guess_view
 
 log = logging.getLogger(__name__.removesuffix("_controller"))
 
@@ -376,7 +377,7 @@ class GuessController(commands.Cog):
                     os.remove(guesser.pokemon.hidden_img_path)
                     os.remove(guesser.pokemon.revealed_img_path)
                     os.remove(guesser.pokemon.original_img_path)
-                except OSError as e:
+                except OSError:
                     log.exception("Could not remove custom pokemon")
 
         except discord.errors.NotFound:
