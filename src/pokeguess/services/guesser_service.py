@@ -1,14 +1,22 @@
-import os
-from pathlib import Path
 import logging
-import re
-from typing import Union, Callable, Awaitable
-from datetime import datetime
-from discord import TextChannel
+import os
+from collections.abc import Awaitable, Callable
+from datetime import UTC, datetime
+from pathlib import Path
+
+from discord import (
+    DMChannel,
+    GroupChannel,
+    StageChannel,
+    TextChannel,
+    Thread,
+    VoiceChannel,
+)
 from discord.ext import tasks
-from models.pokemon import Pokemon
-from models.guesser import Guesser
 from prometheus_client import Counter
+
+from pokeguess.models.guesser import Guesser
+from pokeguess.models.pokemon import Pokemon
 
 log = logging.getLogger(__name__)
 
@@ -73,7 +81,15 @@ class GuesserService:
 
         self.active_guess[guesser.channel.id] = guesser
 
-    async def end_guesser(self, channel: TextChannel):
+    async def end_guesser(
+        self,
+        channel: VoiceChannel
+        | StageChannel
+        | TextChannel
+        | Thread
+        | DMChannel
+        | GroupChannel,
+    ):
         if channel.id not in self.active_guess:
             raise GuesserServiceException()
 
@@ -93,10 +109,19 @@ class GuesserService:
         for event in self.on_guesser_end_event:
             try:
                 await event(guesser)
-            except:
+            except Exception:
                 log.exception("Unhandled exception while calling on_guesser_end_event")
 
-    def get_guesser(self, channel: Union[TextChannel, int]) -> Guesser:
+    def get_guesser(
+        self,
+        channel: VoiceChannel
+        | StageChannel
+        | TextChannel
+        | Thread
+        | DMChannel
+        | GroupChannel
+        | int,
+    ) -> Guesser | None:
         if isinstance(channel, int):
             return self.active_guess.get(channel, None)
 
@@ -110,7 +135,13 @@ class GuesserService:
             for channel_id in channels_ids:
                 guesser = self.get_guesser(channel_id)
 
-                if guesser.end_time < datetime.utcnow():
+                if guesser is None:
+                    log.warning(
+                        f"Expected to find a guesser for channel id {channel_id} but got None"
+                    )
+                    continue
+
+                if guesser.end_time < datetime.now(UTC):
                     await self.end_guesser(guesser.channel)
-        except:
-            pass
+        except Exception:
+            log.exception("Error during end_guesses_loop")

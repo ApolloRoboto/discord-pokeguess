@@ -1,14 +1,15 @@
-from pathlib import Path
-from pkgutil import iter_modules
-from importlib import import_module
 import inspect
 import logging
-from discord.ext.commands import Bot
+from importlib import import_module
+from pathlib import Path
+from pkgutil import iter_modules
+
+from discord.ext.commands.bot import BotBase
 
 log = logging.getLogger(__name__)
 
 
-async def add_cogs(bot: Bot):
+async def add_cogs(bot: BotBase):
     """
     Function to dynamically load all controller class to the bot.
 

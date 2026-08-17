@@ -1,8 +1,8 @@
 import logging
+
 from discord import Guild
 from discord.ext import commands
 from discord.ext.commands import CommandNotFound
-
 
 log = logging.getLogger("event")
 
@@ -21,6 +21,9 @@ class EventLoggerController(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
+        if self.bot.user is None:
+            log.warning("Bot is logged in and ready but the user was None")
+            return
         log.info(
             f"Bot is logged in and ready as {self.bot.user.name}#{self.bot.user.discriminator}"
         )

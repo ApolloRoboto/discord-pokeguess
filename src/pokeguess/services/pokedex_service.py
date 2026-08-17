@@ -1,14 +1,16 @@
-import os
-import shutil
-from datetime import datetime
-from pathlib import Path
-from dataclasses import dataclass
 import json
 import logging
+import os
+import shutil
+from dataclasses import dataclass
+from datetime import UTC, datetime
+from pathlib import Path
+
 import requests
 
 log = logging.getLogger(__name__)
 
+# TODO: needs to be configurations
 OUT_DIR = Path("./pokemons/originals/")
 POKEDEX = Path("./pokemons/pokedex.json")
 
@@ -44,7 +46,7 @@ class PokedexService:
 
         # validate the variable to be a directory
         if not OUT_DIR.is_dir():
-            raise Exception(f"{OUT_DIR} has to be a directory")
+            raise ValueError(f"{OUT_DIR} has to be a directory")
 
     def get_all_pokemons(self) -> list[Pokemon]:
         data = {}
@@ -83,7 +85,7 @@ class PokedexService:
         return ids
 
     def download_image(self, pokemon: Pokemon):
-        start_time = datetime.now()
+        start_time = datetime.now(UTC)
         log.info(f"Starting download of pokemon #{pokemon.id} {pokemon.name}")
 
         response = requests.get(pokemon.ThumbnailImage, stream=True)
@@ -95,7 +97,7 @@ class PokedexService:
         with open(file_path, "wb") as f:
             shutil.copyfileobj(response.raw, f)
 
-        log.info(f"Download successful [{datetime.now() - start_time}]")
+        log.info(f"Download successful [{datetime.now(UTC) - start_time}]")
 
     def download_all_pokemon(self):
         # get already downloaded images (in case the script failed at any point)

@@ -1,21 +1,33 @@
-import os
-from datetime import datetime, timedelta
-import random
-from pathlib import Path
 import logging
+import os
+import random
 import tempfile
 import uuid
-from discord.ext import commands
-from discord import app_commands, Interaction, File, Message
-from discord.app_commands import Choice, Range
+from datetime import UTC, datetime, timedelta
+from pathlib import Path
+
 import discord
 import Levenshtein
-from models.guesser import Guesser
-from models.pokemon import Pokemon
-from views import guess_view
-from services.guesser_service import GuesserService, GuesserAlreadyActiveException
-from services.image_service import ImageService
+from discord import (
+    CategoryChannel,
+    File,
+    ForumChannel,
+    Interaction,
+    Message,
+    app_commands,
+)
+from discord.app_commands import Choice, Range
+from discord.ext import commands
 from prometheus_client import Counter
+
+from pokeguess.models.guesser import Guesser
+from pokeguess.models.pokemon import Pokemon
+from pokeguess.services.guesser_service import (
+    GuesserAlreadyActiveException,
+    GuesserService,
+)
+from pokeguess.services.image_service import ImageService
+from pokeguess.views import guess_view
 
 log = logging.getLogger(__name__.removesuffix("_controller"))
 
@@ -106,6 +118,12 @@ class GuessController(commands.Cog):
             await interaction.response.send_message(embed=embed, ephemeral=True)
             return
 
+        if interaction.channel is None or isinstance(
+            interaction.channel, (ForumChannel, CategoryChannel)
+        ):
+            log.warning(f"Invalid interaction channel, got {type(interaction.channel)}")
+            return
+
         # is there a running guesser here?
         if self.guesser_service.get_guesser(interaction.channel) is not None:
             log.warning("There is already an active guesser")
@@ -159,7 +177,7 @@ class GuessController(commands.Cog):
             self.image_service.process_image(
                 file_path, hidden_file_path, revealed_file_path
             )
-        except:
+        except Exception:
             log.exception("Image processing failed")
             log.info("Sending ProcessingFailedEmbed")
             embed = guess_view.ProcessingFailedEmbed()
@@ -179,7 +197,7 @@ class GuessController(commands.Cog):
         )
 
         # Create the guesser
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
 
         guesser = Guesser(
             channel=interaction.channel,
@@ -231,10 +249,10 @@ class GuessController(commands.Cog):
     async def pokeguess_command(
         self,
         interaction: Interaction,
-        generation: Choice[int] = None,
+        generation: Choice[int] | None = None,
         timeout: Range[int, 15, 300] = 60,
     ) -> None:
-        log.info(
+        log.debug(
             f"Interaction: pokeguess, generation: {generation}, timeout: {timeout}"
         )
 
@@ -242,9 +260,15 @@ class GuessController(commands.Cog):
         permissions = interaction.app_permissions
         if permissions.read_messages is False or permissions.send_messages is False:
             log.warning("Missing permissions on this channel")
-            log.info("Sending MissingPermissionsEmbed")
+            log.debug("Sending MissingPermissionsEmbed")
             embed = guess_view.MissingPermissionsEmbed()
             await interaction.response.send_message(embed=embed, ephemeral=True)
+            return
+
+        if interaction.channel is None or isinstance(
+            interaction.channel, (ForumChannel, CategoryChannel)
+        ):
+            log.warning(f"Invalid interaction channel, got {type(interaction.channel)}")
             return
 
         # is there a running guesser here?
@@ -300,7 +324,7 @@ class GuessController(commands.Cog):
         pokemon = self.guesser_service.get_pokemon_by_id(choice)
 
         # Create Guesser
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
 
         guesser = Guesser(
             channel=interaction.channel,
@@ -375,8 +399,9 @@ class GuessController(commands.Cog):
                 try:
                     os.remove(guesser.pokemon.hidden_img_path)
                     os.remove(guesser.pokemon.revealed_img_path)
-                    os.remove(guesser.pokemon.original_img_path)
-                except OSError as e:
+                    if guesser.pokemon.original_img_path is not None:
+                        os.remove(guesser.pokemon.original_img_path)
+                except OSError:
                     log.exception("Could not remove custom pokemon")
 
         except discord.errors.NotFound:

@@ -1,7 +1,9 @@
-from datetime import datetime
-from pathlib import Path
 import logging
 import os
+from datetime import UTC, datetime
+from pathlib import Path
+from typing import cast
+
 from PIL import Image
 
 log = logging.getLogger(__name__)
@@ -20,11 +22,16 @@ SHADOW_OFFSET = (-6, 8)
 class ImageService:
     def __init__(self) -> None:
         # Cached background image
-        self._background_image: Image.Image = None
+        self._background_image: Image.Image | None = None
 
     def make_silhouette(
-        self, img: Image.Image, color: tuple[int], offset: tuple[int]
+        self,
+        img: Image.Image,
+        color: tuple[int, int, int, int],
+        offset: tuple[int, int],
     ) -> Image.Image:
+        img = img.convert("RGBA")
+
         silhouette = Image.new(img.mode, img.size, (0, 0, 0, 0))
 
         for x in range(img.size[0]):
@@ -34,6 +41,8 @@ class ImageService:
             for y in range(img.size[1]):
                 original_pos = (x, y)
                 original_pixel = img.getpixel(original_pos)
+
+                original_pixel = cast(tuple[int, int, int, int], original_pixel)
 
                 silhouette_pos = (x + offset[0], y + offset[1])
 
@@ -89,7 +98,7 @@ class ImageService:
         self, original_path: Path, hidden_path: Path, revealed_path: Path
     ):
         log.info(f"Starting to process {original_path}")
-        start_time = datetime.now()
+        start_time = datetime.now(UTC)
 
         # Creating output directories
         os.makedirs(hidden_path.parent, exist_ok=True)
@@ -153,4 +162,4 @@ class ImageService:
         log.info(f"Saving {revealed_path}")
         revealed_img.save(revealed_path)
 
-        log.info(f"Done [{datetime.now() - start_time}]")
+        log.info(f"Done [{datetime.now(UTC) - start_time}]")

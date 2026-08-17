@@ -1,6 +1,6 @@
 import logging
+
 from discord.ext import commands
-from discord.ext.commands import Context
 
 log = logging.getLogger(__name__.removesuffix("_controller"))
 
@@ -15,5 +15,5 @@ class SyncController(commands.Cog):
             log.debug("Syncing commands")
             synced = await self.bot.tree.sync()
             log.info(f"Synced {len(synced)} commands ")
-        except:
+        except Exception:
             log.exception("error syncing")

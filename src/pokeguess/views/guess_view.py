@@ -1,8 +1,10 @@
-from datetime import datetime, timezone
 import random
-from discord import Embed, Color, File
+from datetime import UTC, datetime
+
+from discord import Color, Embed, File
 from zalgo_text.zalgo import zalgo
-from models.guesser import Guesser
+
+from pokeguess.models.guesser import Guesser
 
 hidden_color = Color.from_str("#2f3136")
 revealed_color = Color.from_str("#2f3136")
@@ -28,6 +30,7 @@ failed_text: list[str] = [
 close_answer_text: list[str] = [
     "You're pretty close.",
     "That's almost it!",
+    "Almost!",
     "So close!",
     "You're almost there!",
     "You're on the right track!",
@@ -101,7 +104,7 @@ class HintEmbed(Embed):
             self.title = "I can't give more hints!"
             return
 
-        self.title = "Here is a hint"
+        self.title = "Here's a hint"
 
         self.description = "The name is: "
 
@@ -109,7 +112,7 @@ class HintEmbed(Embed):
             if i <= guesser.hints_given:
                 self.description += " " + letter
             else:
-                self.description += " \_"
+                self.description += r" \_"
 
 
 class HiddenEmbed(Embed):
@@ -160,7 +163,7 @@ class RevealedEmbed(Embed):
 
 def datetime_to_discord_timestamp(dt: datetime) -> str:
     # return int((d - datetime(1970, 1, 1)).total_seconds())
-    return f"<t:{int(dt.replace(tzinfo=timezone.utc).timestamp())}:R>"
+    return f"<t:{int(dt.replace(tzinfo=UTC).timestamp())}:R>"
 
 
 text_corruptor = zalgo()
