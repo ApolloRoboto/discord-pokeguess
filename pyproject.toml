@@ -1,12 +1,13 @@
 [project]
-name = "discord-pokeguess"
+name = "pokeguess"
 version = "0.1.1"
-authors = [{ name = "ApolloRoboto", email = "Apollo_Roboto@outlook.com" }]
 description = "Who's That Pokemon! "
-readme = "README.md"
-license = "MIT"
-keywords = ["Discord", "Bot", "Pokemon"]
+authors = [{ name = "ApolloRoboto", email = "Apollo_Roboto@outlook.com" }]
 requires-python = ">=3.10"
+urls = { Source = "https://github.com/ApolloRoboto/discord-pokeguess" }
+readme = "readme.md"
+license = "MIT"
+keywords = ["discord", "bot", "pokemon", "game"]
 classifiers = [
     "Programming Language :: Python :: 3.10",
     "License :: OSI Approved :: MIT License",
@@ -16,25 +17,19 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = [
-    "python-dotenv==1.2.2",
+    "python-dotenv==1.2.3",
     "requests==2.34.2",
     "discord.py==2.2.3",
     "pillow==12.3.0",
     "zalgo-text==0.6",
     "Levenshtein==0.27.4",
     "prometheus-client==0.26.0",
-    "discord-ext-prometheus==0.2.0",
+    "discord-ext-prometheus==0.2.1",
 ]
 
-[project.optional-dependencies]
-dev = ["black", "pylint"]
-
-[project.urls]
-"Source" = "https://github.com/ApolloRoboto/discord-pokeguess"
+[project.scripts]
+main = "pokeguess:main"
 
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
-[tool.hatch.build.targets.wheel]
-packages = ["./src"]
+requires = ["uv_build>=0.12.5,<0.13"]
+build-backend = "uv_build"
