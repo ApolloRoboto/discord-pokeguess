@@ -4,8 +4,15 @@ from collections.abc import Awaitable, Callable
 from datetime import datetime, timezone
 from pathlib import Path
 
+from discord import (
+    DMChannel,
+    GroupChannel,
+    StageChannel,
+    TextChannel,
+    Thread,
+    VoiceChannel,
+)
 from discord.ext import tasks
-from discord.interactions import InteractionChannel
 from prometheus_client import Counter
 
 from pokeguess.models.guesser import Guesser
@@ -74,7 +81,15 @@ class GuesserService:
 
         self.active_guess[guesser.channel.id] = guesser
 
-    async def end_guesser(self, channel: InteractionChannel):
+    async def end_guesser(
+        self,
+        channel: VoiceChannel
+        | StageChannel
+        | TextChannel
+        | Thread
+        | DMChannel
+        | GroupChannel,
+    ):
         if channel.id not in self.active_guess:
             raise GuesserServiceException()
 
@@ -97,7 +112,16 @@ class GuesserService:
             except Exception:
                 log.exception("Unhandled exception while calling on_guesser_end_event")
 
-    def get_guesser(self, channel: InteractionChannel | int) -> Guesser | None:
+    def get_guesser(
+        self,
+        channel: VoiceChannel
+        | StageChannel
+        | TextChannel
+        | Thread
+        | DMChannel
+        | GroupChannel
+        | int,
+    ) -> Guesser | None:
         if isinstance(channel, int):
             return self.active_guess.get(channel, None)
 

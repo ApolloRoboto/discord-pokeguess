@@ -111,7 +111,6 @@ class HintEmbed(Embed):
             if i <= guesser.hints_given:
                 self.description += " " + letter
             else:
-                # note, there was a reason for this \, need to test
                 self.description += r" \_"
 
 

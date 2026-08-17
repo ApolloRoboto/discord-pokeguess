@@ -84,5 +84,12 @@ async def main():
     await bot.start(os.environ["DISCORD_BOT_TOKEN"])
 
 
+def run():
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        log.info("Bye Bye!")
+
+
 if __name__ == "__main__":
-    asyncio.run(main())
+    run()
