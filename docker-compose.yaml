@@ -11,7 +11,7 @@ services:
         source: pokemonData
         target: /app/pokemons
     ports:
-      - 8000:8000
+      - 8000:8000 # Prometheus
 
 volumes:
   pokemonData:
