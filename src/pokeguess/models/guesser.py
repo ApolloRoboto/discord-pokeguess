@@ -2,7 +2,8 @@ from dataclasses import dataclass
 from datetime import datetime
 
 from discord import Member, TextChannel
-from models.pokemon import Pokemon
+
+from pokeguess.models.pokemon import Pokemon
 
 
 @dataclass

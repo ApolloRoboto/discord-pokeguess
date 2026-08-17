@@ -4,13 +4,14 @@ import os
 import sys
 from pathlib import Path
 
-import controllers
 from discord import Intents
 from discord.ext import commands
 from discord.ext.prometheus import PrometheusCog, PrometheusLoggingHandler
 from dotenv import load_dotenv
-from services.image_service import ImageService
-from services.pokedex_service import PokedexService
+
+import pokeguess.controllers
+from pokeguess.services.image_service import ImageService
+from pokeguess.services.pokedex_service import PokedexService
 
 logging.basicConfig(
     stream=sys.stdout,
@@ -67,7 +68,7 @@ async def main():
 
     await bot.add_cog(PrometheusCog(bot))
 
-    await controllers.add_cogs(bot)
+    await pokeguess.controllers.add_cogs(bot)
 
     log.info("App Commands:")
     for command in bot.tree.walk_commands():

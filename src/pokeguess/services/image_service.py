@@ -1,6 +1,6 @@
 import logging
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 from PIL import Image
@@ -90,7 +90,7 @@ class ImageService:
         self, original_path: Path, hidden_path: Path, revealed_path: Path
     ):
         log.info(f"Starting to process {original_path}")
-        start_time = datetime.now()
+        start_time = datetime.now(timezone.utc)
 
         # Creating output directories
         os.makedirs(hidden_path.parent, exist_ok=True)
@@ -154,4 +154,4 @@ class ImageService:
         log.info(f"Saving {revealed_path}")
         revealed_img.save(revealed_path)
 
-        log.info(f"Done [{datetime.now() - start_time}]")
+        log.info(f"Done [{datetime.now(timezone.utc) - start_time}]")

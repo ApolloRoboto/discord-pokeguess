@@ -15,5 +15,5 @@ class SyncController(commands.Cog):
             log.debug("Syncing commands")
             synced = await self.bot.tree.sync()
             log.info(f"Synced {len(synced)} commands ")
-        except:
+        except Exception:
             log.exception("error syncing")

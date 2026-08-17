@@ -3,7 +3,7 @@ import os
 import random
 import tempfile
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import discord
@@ -11,12 +11,16 @@ import Levenshtein
 from discord import File, Interaction, Message, app_commands
 from discord.app_commands import Choice, Range
 from discord.ext import commands
-from models.guesser import Guesser
-from models.pokemon import Pokemon
 from prometheus_client import Counter
-from services.guesser_service import GuesserAlreadyActiveException, GuesserService
-from services.image_service import ImageService
-from views import guess_view
+
+from pokeguess.models.guesser import Guesser
+from pokeguess.models.pokemon import Pokemon
+from pokeguess.services.guesser_service import (
+    GuesserAlreadyActiveException,
+    GuesserService,
+)
+from pokeguess.services.image_service import ImageService
+from pokeguess.views import guess_view
 
 log = logging.getLogger(__name__.removesuffix("_controller"))
 
@@ -160,7 +164,7 @@ class GuessController(commands.Cog):
             self.image_service.process_image(
                 file_path, hidden_file_path, revealed_file_path
             )
-        except:
+        except Exception:
             log.exception("Image processing failed")
             log.info("Sending ProcessingFailedEmbed")
             embed = guess_view.ProcessingFailedEmbed()
@@ -180,7 +184,7 @@ class GuessController(commands.Cog):
         )
 
         # Create the guesser
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
 
         guesser = Guesser(
             channel=interaction.channel,
@@ -301,7 +305,7 @@ class GuessController(commands.Cog):
         pokemon = self.guesser_service.get_pokemon_by_id(choice)
 
         # Create Guesser
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
 
         guesser = Guesser(
             channel=interaction.channel,

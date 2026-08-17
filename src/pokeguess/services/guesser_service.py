@@ -1,14 +1,15 @@
 import logging
 import os
 from collections.abc import Awaitable, Callable
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 from discord import TextChannel
 from discord.ext import tasks
-from models.guesser import Guesser
-from models.pokemon import Pokemon
 from prometheus_client import Counter
+
+from pokeguess.models.guesser import Guesser
+from pokeguess.models.pokemon import Pokemon
 
 log = logging.getLogger(__name__)
 
@@ -93,7 +94,7 @@ class GuesserService:
         for event in self.on_guesser_end_event:
             try:
                 await event(guesser)
-            except:
+            except Exception:
                 log.exception("Unhandled exception while calling on_guesser_end_event")
 
     def get_guesser(self, channel: TextChannel | int) -> Guesser:
@@ -110,7 +111,7 @@ class GuesserService:
             for channel_id in channels_ids:
                 guesser = self.get_guesser(channel_id)
 
-                if guesser.end_time < datetime.utcnow():
+                if guesser.end_time < datetime.now(timezone.utc):
                     await self.end_guesser(guesser.channel)
-        except:
-            pass
+        except Exception:
+            log.exception("Error during end_guesses_loop")

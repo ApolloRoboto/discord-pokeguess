@@ -2,8 +2,9 @@ import random
 from datetime import datetime, timezone
 
 from discord import Color, Embed, File
-from models.guesser import Guesser
 from zalgo_text.zalgo import zalgo
+
+from pokeguess.models.guesser import Guesser
 
 hidden_color = Color.from_str("#2f3136")
 revealed_color = Color.from_str("#2f3136")

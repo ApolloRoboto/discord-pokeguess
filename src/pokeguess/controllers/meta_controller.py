@@ -2,7 +2,8 @@ import logging
 
 from discord import File, Interaction, app_commands
 from discord.ext import commands
-from views import meta_view
+
+from pokeguess.views import meta_view
 
 log = logging.getLogger(__name__.removesuffix("_controller"))
 
