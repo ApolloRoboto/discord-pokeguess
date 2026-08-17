@@ -3,14 +3,13 @@ name = "pokeguess"
 version = "0.1.1"
 description = "Who's That Pokemon! "
 authors = [{ name = "ApolloRoboto", email = "Apollo_Roboto@outlook.com" }]
-requires-python = ">=3.10"
+requires-python = ">=3.14"
 urls = { Source = "https://github.com/ApolloRoboto/discord-pokeguess" }
 readme = "readme.md"
 license = "MIT"
 keywords = ["discord", "bot", "pokemon", "game"]
 classifiers = [
     "Programming Language :: Python :: 3.10",
-    "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Natural Language :: English",
     "Topic :: Games/Entertainment",
@@ -26,6 +25,9 @@ dependencies = [
     "prometheus-client==0.26.0",
     "discord-ext-prometheus==0.2.1",
 ]
+
+[dependency-groups]
+dev = ["ruff>=0.16.3", "ty>=0.0.72"]
 
 [project.scripts]
 main = "pokeguess.__main__:run"

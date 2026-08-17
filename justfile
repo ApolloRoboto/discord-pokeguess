@@ -4,6 +4,9 @@ set windows-shell := ["powershell.exe", "-c"]
 default:
     @just --list --unsorted
 
+init:
+    uv sync --all-extras
+
 build:
     uv build
 
@@ -11,8 +14,8 @@ run:
     uv run main
 
 check:
-    ruff check
-    ty check
+    uv run ruff check
+    uv run ty check
 
 dockerbuild: build
     docker compose build
