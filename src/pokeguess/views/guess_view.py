@@ -1,5 +1,5 @@
 import random
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from discord import Color, Embed, File
 from zalgo_text.zalgo import zalgo
@@ -163,7 +163,7 @@ class RevealedEmbed(Embed):
 
 def datetime_to_discord_timestamp(dt: datetime) -> str:
     # return int((d - datetime(1970, 1, 1)).total_seconds())
-    return f"<t:{int(dt.replace(tzinfo=timezone.utc).timestamp())}:R>"
+    return f"<t:{int(dt.replace(tzinfo=UTC).timestamp())}:R>"
 
 
 text_corruptor = zalgo()

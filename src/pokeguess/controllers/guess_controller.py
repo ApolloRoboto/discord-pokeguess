@@ -3,7 +3,7 @@ import os
 import random
 import tempfile
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import discord
@@ -197,7 +197,7 @@ class GuessController(commands.Cog):
         )
 
         # Create the guesser
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         guesser = Guesser(
             channel=interaction.channel,
@@ -324,7 +324,7 @@ class GuessController(commands.Cog):
         pokemon = self.guesser_service.get_pokemon_by_id(choice)
 
         # Create Guesser
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         guesser = Guesser(
             channel=interaction.channel,

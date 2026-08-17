@@ -1,7 +1,7 @@
 import logging
 import os
 from collections.abc import Awaitable, Callable
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from discord import (
@@ -141,7 +141,7 @@ class GuesserService:
                     )
                     continue
 
-                if guesser.end_time < datetime.now(timezone.utc):
+                if guesser.end_time < datetime.now(UTC):
                     await self.end_guesser(guesser.channel)
         except Exception:
             log.exception("Error during end_guesses_loop")
