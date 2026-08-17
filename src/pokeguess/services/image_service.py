@@ -2,6 +2,7 @@ import logging
 import os
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import cast
 
 from PIL import Image
 
@@ -21,11 +22,16 @@ SHADOW_OFFSET = (-6, 8)
 class ImageService:
     def __init__(self) -> None:
         # Cached background image
-        self._background_image: Image.Image = None
+        self._background_image: Image.Image | None = None
 
     def make_silhouette(
-        self, img: Image.Image, color: tuple[int], offset: tuple[int]
+        self,
+        img: Image.Image,
+        color: tuple[int, int, int, int],
+        offset: tuple[int, int],
     ) -> Image.Image:
+        img = img.convert("RGBA")
+
         silhouette = Image.new(img.mode, img.size, (0, 0, 0, 0))
 
         for x in range(img.size[0]):
@@ -35,6 +41,8 @@ class ImageService:
             for y in range(img.size[1]):
                 original_pos = (x, y)
                 original_pixel = img.getpixel(original_pos)
+
+                original_pixel = cast(tuple[int, int, int, int], original_pixel)
 
                 silhouette_pos = (x + offset[0], y + offset[1])
 

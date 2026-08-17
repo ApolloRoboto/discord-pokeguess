@@ -8,7 +8,14 @@ from pathlib import Path
 
 import discord
 import Levenshtein
-from discord import File, Interaction, Message, app_commands
+from discord import (
+    CategoryChannel,
+    File,
+    ForumChannel,
+    Interaction,
+    Message,
+    app_commands,
+)
 from discord.app_commands import Choice, Range
 from discord.ext import commands
 from prometheus_client import Counter
@@ -109,6 +116,12 @@ class GuessController(commands.Cog):
             log.info("Sending MissingPermissionsEmbed")
             embed = guess_view.MissingPermissionsEmbed()
             await interaction.response.send_message(embed=embed, ephemeral=True)
+            return
+
+        if interaction.channel is None or isinstance(
+            interaction.channel, (ForumChannel, CategoryChannel)
+        ):
+            log.warning(f"Invalid interaction channel, got {type(interaction.channel)}")
             return
 
         # is there a running guesser here?
@@ -236,10 +249,10 @@ class GuessController(commands.Cog):
     async def pokeguess_command(
         self,
         interaction: Interaction,
-        generation: Choice[int] = None,
+        generation: Choice[int] | None = None,
         timeout: Range[int, 15, 300] = 60,
     ) -> None:
-        log.info(
+        log.debug(
             f"Interaction: pokeguess, generation: {generation}, timeout: {timeout}"
         )
 
@@ -247,9 +260,15 @@ class GuessController(commands.Cog):
         permissions = interaction.app_permissions
         if permissions.read_messages is False or permissions.send_messages is False:
             log.warning("Missing permissions on this channel")
-            log.info("Sending MissingPermissionsEmbed")
+            log.debug("Sending MissingPermissionsEmbed")
             embed = guess_view.MissingPermissionsEmbed()
             await interaction.response.send_message(embed=embed, ephemeral=True)
+            return
+
+        if interaction.channel is None or isinstance(
+            interaction.channel, (ForumChannel, CategoryChannel)
+        ):
+            log.warning(f"Invalid interaction channel, got {type(interaction.channel)}")
             return
 
         # is there a running guesser here?
@@ -380,7 +399,8 @@ class GuessController(commands.Cog):
                 try:
                     os.remove(guesser.pokemon.hidden_img_path)
                     os.remove(guesser.pokemon.revealed_img_path)
-                    os.remove(guesser.pokemon.original_img_path)
+                    if guesser.pokemon.original_img_path is not None:
+                        os.remove(guesser.pokemon.original_img_path)
                 except OSError:
                     log.exception("Could not remove custom pokemon")
 

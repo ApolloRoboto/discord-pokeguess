@@ -16,10 +16,12 @@ class MetaController(commands.Cog):
 
     @app_commands.command(
         name="invite",
-        description="Invite this bot to your server!",
+        description="Invite this bot to yo  ur server!",
     )
     async def invite_command(self, interaction: Interaction) -> None:
         log.info("Interaction: invite")
+
+        assert self.bot.user is not None
 
         view = meta_view.InviteView(self.bot.user)
         file = File("./resources/littlePokemonBanner.png")
