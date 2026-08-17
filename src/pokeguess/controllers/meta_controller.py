@@ -1,6 +1,6 @@
 import logging
 
-from discord import File, Interaction, app_commands
+from discord import Interaction, app_commands
 from discord.ext import commands
 
 from pokeguess.views import meta_view
@@ -16,7 +16,7 @@ class MetaController(commands.Cog):
 
     @app_commands.command(
         name="invite",
-        description="Invite this bot to yo  ur server!",
+        description="Invite this bot to other server",
     )
     async def invite_command(self, interaction: Interaction) -> None:
         log.info("Interaction: invite")
@@ -24,5 +24,10 @@ class MetaController(commands.Cog):
         assert self.bot.user is not None
 
         view = meta_view.InviteView(self.bot.user)
-        file = File("./resources/littlePokemonBanner.png")
-        await interaction.response.send_message(view=view, file=file)
+        # file = File("./resources/littlePokemonBanner.png")
+        await interaction.response.send_message(
+            view=view,
+            # file=file,
+            content="*Consider supporting me on [Ko-Fi](https://ko-fi.com/apolloroboto) <3*",
+            suppress_embeds=True,
+        )
