@@ -4,6 +4,7 @@ import os
 import sys
 from pathlib import Path
 
+from colorama import Fore, Style
 from discord import Intents
 from discord.ext import commands
 from discord.ext.prometheus import PrometheusCog, PrometheusLoggingHandler
@@ -13,27 +14,38 @@ import pokeguess.controllers
 from pokeguess.services.image_service import ImageService
 from pokeguess.services.pokedex_service import PokedexService
 
+POKEMON_DIR = Path("./pokemons")
+ORIGINAL_DIR = POKEMON_DIR / "originals"
+REVEALED_DIR = POKEMON_DIR / "revealed"
+HIDDEN_DIR = POKEMON_DIR / "hidden"
+
+
+class PackageLoggingFilter(logging.Filter):
+    def filter(self, record: logging.LogRecord) -> bool:
+        return record.name.startswith("pokeguess")
+
+
 logging.basicConfig(
     stream=sys.stdout,
-    level=logging.INFO,
+    level=logging.DEBUG,
     datefmt="%Y-%m-%d %H:%M:%S",
-    format="%(asctime)s %(levelname)-7s %(name)-25s %(message)s",
+    format=f"{Fore.BLACK}{Style.BRIGHT}%(asctime)s{Style.RESET_ALL} %(levelname)-7s %(name)-25s %(message)s",
 )
-logging.getLogger().addHandler(PrometheusLoggingHandler())
-log = logging.getLogger(__name__)
 
-ORIGINAL_DIR = Path("./pokemons", "originals")
-REVEALED_DIR = Path("./pokemons", "revealed")
-HIDDEN_DIR = Path("./pokemons", "hidden")
+logging.getLogger().addHandler(PrometheusLoggingHandler())
+for h in logging.getLogger().handlers:
+    h.addFilter(PackageLoggingFilter())
+
+log = logging.getLogger(__name__)
 
 
 def download_pokemon_images():
-    log.info("Downloading pokemon images")
+    log.debug("Downloading pokemon images")
     PokedexService().download_all_pokemon()
 
 
 def process_pokemon_images():
-    log.info("Processing pokemon images")
+    log.debug("Processing pokemon images")
     image_service = ImageService()
     for file in os.listdir(ORIGINAL_DIR):
         original_path = Path(ORIGINAL_DIR, file)
@@ -51,8 +63,28 @@ def process_pokemon_images():
         )
 
 
+def has_file_permissions():
+    if os.access(POKEMON_DIR, os.W_OK):
+        return True
+    log.error(f"Missing write permissions for folder '{POKEMON_DIR.absolute()}'")
+    return False
+
+
+def log_bot_commands(bot):
+    app_commands = [c.name for c in list(bot.tree.walk_commands())]
+    log.info(f"App Commands ({len(app_commands)}): {', '.join(app_commands)}")
+
+    commands = [c.name for c in list(bot.walk_commands())]
+    log.info(f"Commands ({len(commands)}): {', '.join(commands)}")
+
+
 async def main():
     load_dotenv()
+
+    if not has_file_permissions():
+        sys.exit(1)
+
+    log.debug(f"Pokemon images will be saved at {POKEMON_DIR.absolute()}")
 
     intents = Intents()
     intents.members = True
@@ -70,12 +102,7 @@ async def main():
 
     await pokeguess.controllers.add_cogs(bot)
 
-    log.info("App Commands:")
-    for command in bot.tree.walk_commands():
-        log.info(f"\t{command.name}")
-    log.info("Commands:")
-    for command in bot.walk_commands():
-        log.info(f"\t{command.name}")
+    log_bot_commands(bot)
 
     # Prepare the data before running the bot
     download_pokemon_images()

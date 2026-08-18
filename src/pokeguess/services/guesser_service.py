@@ -1,12 +1,14 @@
 import logging
 import os
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Protocol
 
 from discord import (
     DMChannel,
     GroupChannel,
+    Interaction,
     StageChannel,
     TextChannel,
     Thread,
@@ -38,12 +40,25 @@ class GuesserAlreadyActiveException(GuesserServiceException):
     pass
 
 
+class GuesserNotFoundException(GuesserServiceException):
+    pass
+
+
+class GuesserEndEvent(Protocol):
+    def __call__(
+        self,
+        guesser: Guesser,
+        interaction: Interaction | None,
+        was_stopped: bool,
+    ) -> Awaitable[None]: ...
+
+
 class GuesserService:
     def __init__(self) -> None:
         # Guesser by channel_id
         self.active_guess: dict[int, Guesser] = {}
 
-        self.on_guesser_end_event: list[Callable[[Guesser], Awaitable[None]]] = []
+        self.on_guesser_end_event: list[GuesserEndEvent] = []
 
         # pylint: disable=no-member
         self.end_guesses_loop.start()
@@ -89,9 +104,12 @@ class GuesserService:
         | Thread
         | DMChannel
         | GroupChannel,
+        *,
+        interaction: Interaction | None = None,
+        was_stopped: bool = False,
     ):
         if channel.id not in self.active_guess:
-            raise GuesserServiceException()
+            raise GuesserNotFoundException()
 
         guesser = self.active_guess.pop(channel.id)
 
@@ -108,7 +126,7 @@ class GuesserService:
 
         for event in self.on_guesser_end_event:
             try:
-                await event(guesser)
+                await event(guesser, interaction, was_stopped)
             except Exception:
                 log.exception("Unhandled exception while calling on_guesser_end_event")
 

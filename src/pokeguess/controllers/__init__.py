@@ -32,5 +32,5 @@ async def add_cogs(bot: BotBase):
         for key, value in module.__dict__.items():
             if key.endswith("Controller") and inspect.isclass(value):
                 # Add controller to the bot
-                log.info(f"Loading controller {value.__name__}")
+                log.debug(f"Loading controller {value.__name__}")
                 await bot.add_cog(value(bot))

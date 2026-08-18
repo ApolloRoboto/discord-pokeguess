@@ -6,9 +6,8 @@ from zalgo_text.zalgo import zalgo
 
 from pokeguess.models.guesser import Guesser
 
-hidden_color = Color.from_str("#2f3136")
-revealed_color = Color.from_str("#2f3136")
-hint_color = Color.from_str("#2f3136")
+default_color = Color.from_str("#2f3136")
+guessing_color = Color.from_str("#1058b2")
 error_color = Color.from_str("#F73154")
 
 # The format is for the winner's name
@@ -39,66 +38,67 @@ close_answer_text: list[str] = [
 ]
 
 
-class GenericErrorEmbed(Embed):
+class ErrorEmbed(Embed):
     def __init__(self):
         super().__init__()
         self.color = error_color
-        self.title = "An error happened, I Couldn't start the game"
+        self.title = "An error happened"
 
 
-class ProcessingActiveEmbed(Embed):
+class ProcessingActiveEmbed(ErrorEmbed):
     def __init__(self):
         super().__init__()
-        self.color = error_color
-        self.title = "Wait a minute! Someone else is posting a custom image"
+        self.title = "Wait a minute! Someone else is posting a custom image."
 
 
-class ProcessingFailedEmbed(Embed):
+class ProcessingFailedEmbed(ErrorEmbed):
     def __init__(self):
         super().__init__()
-        self.color = error_color
         self.title = "I could not process this image, try another one."
 
 
-class InvalidMediaTypeEmbed(Embed):
+class InvalidMediaTypeEmbed(ErrorEmbed):
     def __init__(self):
         super().__init__()
-        self.color = error_color
         self.title = "Invalid image type, try to use a PNG with transparency."
 
 
-class MissingPermissionsEmbed(Embed):
+class MissingPermissionsEmbed(ErrorEmbed):
     def __init__(self):
         super().__init__()
-        self.color = error_color
-        self.title = "I do not have permissions to read or write messages here. Try in another channel."
+        self.title = "I do not have permissions to read or send messages here.\nTry in another channel or contact the administrators."
 
 
-class InvalidTimeoutEmbed(Embed):
+class InvalidTimeoutEmbed(ErrorEmbed):
     def __init__(self):
         super().__init__()
-        self.color = error_color
-        self.title = "Use A timeout between 15 and 300 seconds"
+        self.title = "Use A timeout between 15 and 300 seconds."
 
 
-class AlreadyActiveEmbed(Embed):
+class AlreadyActiveEmbed(ErrorEmbed):
     def __init__(self):
         super().__init__()
-        self.color = error_color
         self.title = "A guessing game is already active."
+
+
+class NothingToStopEmbed(ErrorEmbed):
+    def __init__(self):
+        super().__init__()
+        self.title = "No guessing game to stop."
+        self.description = "Start one with </pokeguess:1536910651002458333> or </pokeguesscustom:1052812046716125285>."
 
 
 class CloseAnswerEmbed(Embed):
     def __init__(self):
         super().__init__()
-        self.color = hint_color
+        self.color = default_color
         self.title = random.choice(close_answer_text)
 
 
 class HintEmbed(Embed):
     def __init__(self, guesser: Guesser):
         super().__init__()
-        self.color = hint_color
+        self.color = default_color
 
         if guesser.hints_given >= 3:
             self.title = "I can't give more hints!"
@@ -115,29 +115,35 @@ class HintEmbed(Embed):
                 self.description += r" \_"
 
 
+class StoppedEmbed(Embed):
+    def __init__(self, guesser: Guesser):
+        super().__init__()
+        self.color = default_color
+        self.title = "The game has been stopped"
+
+
 class HiddenEmbed(Embed):
     def __init__(self, guesser: Guesser, image_file: File):
         super().__init__()
-
-        self.color = hidden_color
+        self.color = guessing_color
         self.title = "Who's That Pokemon?"
 
         self.description = "Ends " + datetime_to_discord_timestamp(guesser.end_time)
 
         if guesser.custom:
+            # Note: author.mention doesn't work in embed footer
             self.set_footer(text=f"Custom image from {guesser.author.display_name}")
 
         self.set_image(url=f"attachment://{image_file.filename}")
 
-        # For Debuging
+        # for debuging
         # self.set_footer(text=guesser.pokemon.name)
 
 
 class RevealedEmbed(Embed):
     def __init__(self, guesser: Guesser, image_file: File):
         super().__init__()
-
-        self.color = revealed_color
+        self.color = guessing_color
         self.title = f"It's {guesser.pokemon.name}!"
 
         number = "Custom" if guesser.custom else f"#{guesser.pokemon.id}"
