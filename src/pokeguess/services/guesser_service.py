@@ -20,7 +20,7 @@ from prometheus_client import Counter
 from pokeguess.models.guesser import Guesser
 from pokeguess.models.pokemon import Pokemon
 
-log = logging.getLogger(__name__)
+log = logging.getLogger(__name__.removesuffix("_service"))
 
 HIDDEN_IMG_DIR = Path("./pokemons/hidden/")
 REVEALED_IMG_DIR = Path("./pokemons/revealed/")

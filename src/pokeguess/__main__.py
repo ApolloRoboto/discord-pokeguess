@@ -4,13 +4,13 @@ import os
 import sys
 from pathlib import Path
 
-from colorama import Fore, Style
 from discord import Intents
 from discord.ext import commands
-from discord.ext.prometheus import PrometheusCog, PrometheusLoggingHandler
+from discord.ext.prometheus import PrometheusCog
 from dotenv import load_dotenv
 
 import pokeguess.controllers
+from pokeguess.logger import prepare_logger
 from pokeguess.services.image_service import ImageService
 from pokeguess.services.pokedex_service import PokedexService
 
@@ -20,23 +20,7 @@ REVEALED_DIR = POKEMON_DIR / "revealed"
 HIDDEN_DIR = POKEMON_DIR / "hidden"
 
 
-class PackageLoggingFilter(logging.Filter):
-    def filter(self, record: logging.LogRecord) -> bool:
-        return record.name.startswith("pokeguess")
-
-
-logging.basicConfig(
-    stream=sys.stdout,
-    level=logging.DEBUG,
-    datefmt="%Y-%m-%d %H:%M:%S",
-    format=f"{Fore.BLACK}{Style.BRIGHT}%(asctime)s{Style.RESET_ALL} %(levelname)-7s %(name)-25s %(message)s",
-)
-
-logging.getLogger().addHandler(PrometheusLoggingHandler())
-for h in logging.getLogger().handlers:
-    h.addFilter(PackageLoggingFilter())
-
-log = logging.getLogger(__name__)
+log = logging.getLogger(__name__.replace("__main__", "main"))
 
 
 def download_pokemon_images():
@@ -80,6 +64,9 @@ def log_bot_commands(bot):
 
 async def main():
     load_dotenv()
+    prepare_logger()
+
+    log.info("Heya!")
 
     if not has_file_permissions():
         sys.exit(1)

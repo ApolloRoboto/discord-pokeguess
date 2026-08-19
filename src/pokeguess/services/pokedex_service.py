@@ -8,7 +8,7 @@ from pathlib import Path
 
 import requests
 
-log = logging.getLogger(__name__)
+log = logging.getLogger(__name__.removesuffix("_service"))
 
 # TODO: needs to be configurations
 OUT_DIR = Path("./pokemons/originals/")

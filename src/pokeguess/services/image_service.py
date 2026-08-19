@@ -6,7 +6,7 @@ from typing import cast
 
 from PIL import Image
 
-log = logging.getLogger(__name__)
+log = logging.getLogger(__name__.removesuffix("_service"))
 
 
 BACKGROUND_PATH = Path("./resources/background.png")
