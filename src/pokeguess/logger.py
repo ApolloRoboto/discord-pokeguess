@@ -7,7 +7,14 @@ from discord.ext.prometheus import PrometheusLoggingHandler
 
 class PackageLoggingFilter(logging.Filter):
     def filter(self, record: logging.LogRecord) -> bool:
-        return record.name.startswith("pokeguess")
+        return (
+            record.name.startswith("pokeguess")
+            or record.name
+            in [
+                # "discord",
+                # "discord.http",
+            ]
+        )
 
 
 class CustomLoggingFormatter(logging.Formatter):

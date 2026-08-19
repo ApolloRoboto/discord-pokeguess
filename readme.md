@@ -13,27 +13,19 @@ Find it on:
 - [discords.com](https://discords.com/bots/bot/1052405591680757961)
 - [discord.me](https://discord.me/pokeguess)
 
+# Getting started
+
+Initialize the repository:
+```bash
+just init
+```
+
 # Running the bot
 
-Create a `.env` file with the following content.
-
-```env
-# Discord
-DISCORD_BOT_TOKEN=
-DISCORD_APPLICATION_ID=
-```
-
-Install dependencies
+Make sure to populate the `.env` file with your api tokens, and you should be ready to run the bot.
 ```bash
-python -m pip install .
+just run
 ```
-
-Run the bot.
-```bash
-python ./src/main.py
-```
-
-One manual action needs to be done to update the slash commands. As the owner, send a private message with `!sync` to the bot.
 
 ## With Docker
 

@@ -1,0 +1,12 @@
+{
+    "recommendations": [
+        "astral-sh.ty",
+        "charliermarsh.ruff",
+        "fill-labs.dependi",
+        "github.vscode-github-actions",
+        "ms-python.debugpy",
+        "ms-python.python",
+        "nefrob.vscode-just-syntax",
+        "tamasfe.even-better-toml",
+    ]
+}

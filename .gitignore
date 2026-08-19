@@ -134,6 +134,7 @@ dmypy.json
 # ---------------------- #
 
 .ruff_cache
+*.drawio.bkp
 
 # data
 pokemons/*

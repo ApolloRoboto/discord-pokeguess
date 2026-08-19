@@ -95,7 +95,8 @@ async def main():
     download_pokemon_images()
     process_pokemon_images()
 
-    await bot.start(os.environ["DISCORD_BOT_TOKEN"])
+    async with bot:  # this will close the client session and remove the "Unclosed client session" error
+        await bot.start(os.environ["DISCORD_BOT_TOKEN"])
 
 
 def run():
@@ -103,6 +104,7 @@ def run():
         asyncio.run(main())
     except KeyboardInterrupt:
         log.info("Bye Bye!")
+        sys.exit(0)
 
 
 if __name__ == "__main__":
