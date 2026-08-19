@@ -169,38 +169,39 @@ class GuessController(commands.Cog):
         await image.save(file_path)
 
         # Starting the process
-        try:
-            self.image_being_processed.add(interaction.channel.id)
-            self.image_service.process_image(
-                file_path, hidden_file_path, revealed_file_path
-            )
-        except Exception:
-            log.exception("Image processing failed")
-            embed = guess_view.ProcessingFailedEmbed()
-            await interaction.response.send_message(embed=embed, ephemeral=True)
-            return
-        finally:
-            if interaction.channel.id in self.image_being_processed:
-                self.image_being_processed.remove(interaction.channel.id)
+        self.image_being_processed.add(interaction.channel.id)
+        async with interaction.channel.typing():
+            try:
+                self.image_service.process_image(
+                    file_path, hidden_file_path, revealed_file_path
+                )
+            except Exception:
+                log.exception("Image processing failed")
+                embed = guess_view.ProcessingFailedEmbed()
+                await interaction.response.send_message(embed=embed, ephemeral=True)
+                return
+            finally:
+                if interaction.channel.id in self.image_being_processed:
+                    self.image_being_processed.remove(interaction.channel.id)
 
         # Create the pokemon
         pokemon = Pokemon(
-            id=None,
             name=name,
+            id=None,
+            custom=True,
             hidden_img_path=hidden_file_path,
             revealed_img_path=revealed_file_path,
             original_img_path=file_path,
         )
 
         # Create the guesser
-        now = datetime.now(UTC)
+        now = datetime.now(UTC) + timedelta(milliseconds=100)  #  now + response delay
 
         guesser = Guesser(
             channel=interaction.channel,
             pokemon=pokemon,
             start_time=now,
             end_time=now + timedelta(seconds=timeout),
-            custom=True,
             author=interaction.user,
         )
 
@@ -314,14 +315,13 @@ class GuessController(commands.Cog):
         pokemon = self.guesser_service.get_pokemon_by_id(choice)
 
         # Create Guesser
-        now = datetime.now(UTC)
+        now = datetime.now(UTC) + timedelta(milliseconds=100)  #  now + response delay
 
         guesser = Guesser(
             channel=interaction.channel,
             pokemon=pokemon,
             start_time=now,
             end_time=now + timedelta(seconds=timeout),
-            custom=False,
             author=interaction.user,
         )
 
@@ -343,6 +343,13 @@ class GuessController(commands.Cog):
             interaction.channel, (ForumChannel, CategoryChannel)
         ):
             log.warning(f"Invalid interaction channel, got {type(interaction.channel)}")
+            return
+
+        # is there an image being processed here?
+        if interaction.channel.id in self.image_being_processed:
+            log.warning("Attempt to stop the game while image is being processed")
+            embed = guess_view.ProcessingActiveEmbed()
+            await interaction.response.send_message(embed=embed, ephemeral=True)
             return
 
         try:
@@ -417,7 +424,7 @@ class GuessController(commands.Cog):
             log.warning(f"The channel {guesser.channel.id} could not be found")
 
         # Clean up custom pokemon
-        if guesser.custom:
+        if guesser.pokemon.custom:
             log.debug("Removing custom Pokemon file")
             files_to_remove = [
                 guesser.pokemon.hidden_img_path,

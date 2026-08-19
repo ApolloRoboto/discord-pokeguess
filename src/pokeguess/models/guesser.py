@@ -24,7 +24,6 @@ class Guesser:
     pokemon: Pokemon
     start_time: datetime
     end_time: datetime
-    custom: bool
     author: Member | User
     total_guesses: int = 0
     winning_message: Message | None = None

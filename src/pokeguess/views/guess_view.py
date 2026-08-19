@@ -48,7 +48,7 @@ class ErrorEmbed(Embed):
 class ProcessingActiveEmbed(ErrorEmbed):
     def __init__(self):
         super().__init__()
-        self.title = "Wait a minute! Someone else is posting a custom image."
+        self.title = "Wait a second! Someone is starting a custom game."
 
 
 class ProcessingFailedEmbed(ErrorEmbed):
@@ -130,7 +130,7 @@ class HiddenEmbed(Embed):
 
         self.description = "Ends " + datetime_to_discord_timestamp(guesser.end_time)
 
-        if guesser.custom:
+        if guesser.pokemon.custom:
             # Note: author.mention doesn't work in embed footer
             self.set_footer(text=f"Custom image from {guesser.author.display_name}")
 
@@ -146,7 +146,7 @@ class RevealedEmbed(Embed):
         self.color = guessing_color
         self.title = f"It's {guesser.pokemon.name}!"
 
-        number = "Custom" if guesser.custom else f"#{guesser.pokemon.id}"
+        number = "Custom" if guesser.pokemon.custom else f"#{guesser.pokemon.id}"
         self.add_field(name="Number", value=number)
         self.add_field(name="Total Guesses", value=guesser.total_guesses)
 

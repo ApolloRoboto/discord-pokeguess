@@ -6,6 +6,7 @@ from pathlib import Path
 class Pokemon:
     name: str
     id: int | None
+    custom: bool
     hidden_img_path: Path
     revealed_img_path: Path
     original_img_path: Path | None
