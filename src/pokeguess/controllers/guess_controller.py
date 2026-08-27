@@ -19,22 +19,31 @@ from discord import (
 from discord.app_commands import Choice, Range
 from discord.ext import commands
 from prometheus_client import Counter
+from slugify import slugify
 
 from pokeguess.models.guesser import Guesser
-from pokeguess.models.pokemon import Pokemon
+from pokeguess.models.pokemon import CustomPokemonData, PokemonData
 from pokeguess.services.guesser_service import (
     GuesserAlreadyActiveException,
     GuesserNotFoundException,
     GuesserService,
 )
 from pokeguess.services.image_service import ImageService
+from pokeguess.services.pokedex_service import PokedexService
 from pokeguess.views import guess_view
 
 log = logging.getLogger(__name__.removesuffix("_controller"))
 
-ORIGINAL_DIR_TMP = Path(tempfile.gettempdir(), "custompokemon", "originals")
-REVEALED_DIR_TMP = Path(tempfile.gettempdir(), "custompokemon", "revealed")
-HIDDEN_DIR_TMP = Path(tempfile.gettempdir(), "custompokemon", "hidden")
+POKEMON_TMP_DIR = Path(tempfile.gettempdir(), "custompokemon")
+ORIGINAL_IMG_DIR_TMP = POKEMON_TMP_DIR / "originals"
+REVEALED_IMG_DIR_TMP = POKEMON_TMP_DIR / "revealed"
+HIDDEN_IMG_DIR_TMP = POKEMON_TMP_DIR / "hidden"
+
+POKEMON_DIR = Path("./pokemons")
+ORIGINAL_IMG_DIR = POKEMON_DIR / "originals"
+HIDDEN_IMG_DIR = POKEMON_DIR / "hidden"
+REVEALED_IMG_DIR = POKEMON_DIR / "revealed"
+
 
 POKEGUESS_ATTEMPS_COUNTER = Counter(
     "pokeguess_guess_attemps", "How many attemps were made by users"
@@ -80,6 +89,7 @@ class GuessController(commands.Cog):
         self.bot = bot
         self.guesser_service = GuesserService()
         self.image_service = ImageService()
+        self.pokedex_service = PokedexService()
 
         # register the on_guess_end method to be called
         self.guesser_service.on_guesser_end_event.append(self.on_guess_end)
@@ -157,23 +167,23 @@ class GuessController(commands.Cog):
             return
 
         # Create the file path
-        file_extension = image.filename.split(".")[-1]
-        file_name = f"{uuid.uuid4()}.{file_extension}"
-        file_path = Path(ORIGINAL_DIR_TMP, file_name)
-        hidden_file_path = Path(HIDDEN_DIR_TMP, file_name)
-        revealed_file_path = Path(REVEALED_DIR_TMP, file_name)
+        pokemon_id = str(uuid.uuid4())
+        original_file_extension = image.filename.split(".")[-1]
+        original_path = ORIGINAL_IMG_DIR_TMP / f"{pokemon_id}.{original_file_extension}"
+        hidden_path = HIDDEN_IMG_DIR_TMP / f"{pokemon_id}.png"
+        revealed_path = REVEALED_IMG_DIR_TMP / f"{pokemon_id}.png"
 
         # Saving this file
-        log.debug(f"Saving {file_path}")
-        os.makedirs(ORIGINAL_DIR_TMP, exist_ok=True)
-        await image.save(file_path)
+        log.debug(f"Saving {original_path}")
+        os.makedirs(ORIGINAL_IMG_DIR_TMP, exist_ok=True)
+        await image.save(original_path)
 
-        # Starting the process
+        # Starting the image process
         self.image_being_processed.add(interaction.channel.id)
         async with interaction.channel.typing():
             try:
                 self.image_service.process_image(
-                    file_path, hidden_file_path, revealed_file_path
+                    original_path, hidden_path, revealed_path
                 )
             except Exception:
                 log.exception("Image processing failed")
@@ -185,13 +195,14 @@ class GuessController(commands.Cog):
                     self.image_being_processed.remove(interaction.channel.id)
 
         # Create the pokemon
-        pokemon = Pokemon(
+        pokemon = CustomPokemonData(
+            generation=None,
             name=name,
-            id=None,
-            custom=True,
-            hidden_img_path=hidden_file_path,
-            revealed_img_path=revealed_file_path,
-            original_img_path=file_path,
+            slug=slugify(name),
+            id=pokemon_id,
+            original_img_path=original_path,
+            hidden_img_path=hidden_path,
+            revealed_img_path=revealed_path,
         )
 
         # Create the guesser
@@ -231,14 +242,16 @@ class GuessController(commands.Cog):
     @app_commands.choices(
         generation=[
             Choice(name="All", value=0),
-            Choice(name="Generation 1", value=1),
-            Choice(name="Generation 2", value=2),
-            Choice(name="Generation 3", value=3),
-            Choice(name="Generation 4", value=4),
-            Choice(name="Generation 5", value=5),
-            Choice(name="Generation 6", value=6),
-            Choice(name="Generation 7", value=7),
-            Choice(name="Generation 8", value=8),
+            Choice(name="Kanto (1)", value=1),
+            Choice(name="Johto (2)", value=2),
+            Choice(name="Hoenn (3)", value=3),
+            Choice(name="Sinnoh (4)", value=4),
+            Choice(name="Unova (5)", value=5),
+            Choice(name="Kalos (6)", value=6),
+            Choice(name="Alola (7)", value=7),
+            Choice(name="Galar (8)", value=8),
+            Choice(name="Paldea (9)", value=9),
+            # Choice(name="XXXXX (10)", value=10), # pokemon list unknown at this time
         ]
     )
     async def pokeguess_command(
@@ -263,6 +276,8 @@ class GuessController(commands.Cog):
             interaction.channel, (ForumChannel, CategoryChannel)
         ):
             log.warning(f"Invalid interaction channel, got {type(interaction.channel)}")
+            embed = guess_view.ErrorEmbed()
+            await interaction.response.send_message(embed=embed, ephemeral=True)
             return
 
         # is there a running guesser here?
@@ -309,10 +324,21 @@ class GuessController(commands.Cog):
             id_range = (722, 809)
         elif generation.value == 8:
             id_range = (810, 905)
+        elif generation.value == 9:
+            id_range = (906, 1025)
+        # elif generation.value == 10:
+        #     id_range = (1026, 0)
 
         choice = random.randint(*id_range)
 
-        pokemon = self.guesser_service.get_pokemon_by_id(choice)
+        log.debug(f"Searching for pokemon #{choice}")
+
+        pokemon = self.pokedex_service.get_pokemon_by_id(choice)
+        if pokemon is None:
+            log.error(f"Pokemon #{choice} was not found")
+            embed = guess_view.ErrorEmbed()
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+            return
 
         # Create Guesser
         now = datetime.now(UTC) + timedelta(milliseconds=100)  #  now + response delay
@@ -328,7 +354,7 @@ class GuessController(commands.Cog):
         self.guesser_service.add_guesser(guesser)
 
         # Send response
-        file = File(pokemon.hidden_img_path, filename="hidden.png")
+        file = File(self.get_pokemon_hidden_img_path(pokemon), filename="hidden.png")
         embed = guess_view.HiddenEmbed(guesser, file)
         await interaction.response.send_message(embed=embed, file=file)
 
@@ -377,17 +403,16 @@ class GuessController(commands.Cog):
         guesser.total_guesses += 1
         POKEGUESS_ATTEMPS_COUNTER.inc()
 
-        content = message.content.strip().lower()
+        msg_content = message.content.strip().lower()
 
-        # if guess is right
-        if content == guesser.pokemon.name.lower():
+        if guesser.guess(msg_content):
             guesser.winner = message.author
             guesser.winning_message = message
             await self.guesser_service.end_guesser(message.channel)
             return
 
         # Send a hint if the user is requesting it
-        if content in HINT_REQUEST_TEXT:
+        if msg_content in HINT_REQUEST_TEXT:
             POKEGUESS_HINTS_COUNTER.inc()
             log.info(
                 f"User {message.author.id} requested a hint, hints given: {guesser.hints_given + 1}"
@@ -398,7 +423,7 @@ class GuessController(commands.Cog):
             return
 
         # The user is very close to the answer
-        if Levenshtein.distance(content, guesser.pokemon.name.lower()) == 1:
+        if Levenshtein.distance(msg_content, guesser.pokemon.name.lower()) == 1:
             log.info(f"User {message.author.id} almost got it")
             embed = guess_view.CloseAnswerEmbed()
             await message.reply(embed=embed)
@@ -407,29 +432,31 @@ class GuessController(commands.Cog):
     async def on_guess_end(
         self, guesser: Guesser, interaction: Interaction | None, was_stopped: bool
     ):
+
         try:
-            file = File(guesser.pokemon.revealed_img_path)
+            file = File(self.get_pokemon_revealed_img_path(guesser.pokemon))
 
             if was_stopped and interaction is not None:
                 embed = guess_view.StoppedEmbed(guesser)
                 await interaction.response.send_message(embed=embed)
             else:
-                embed = guess_view.RevealedEmbed(guesser, file)
-                if guesser.winning_message is None:
-                    await guesser.channel.send(embed=embed, file=file)
-                else:
-                    await guesser.winning_message.reply(embed=embed, file=file)
+                async with guesser.channel.typing():
+                    embed = guess_view.RevealedEmbed(guesser, file)
+                    if guesser.winning_message is None:
+                        await guesser.channel.send(embed=embed, file=file)
+                    else:
+                        await guesser.winning_message.reply(embed=embed, file=file)
 
         except discord.errors.NotFound:
             log.warning(f"The channel {guesser.channel.id} could not be found")
 
         # Clean up custom pokemon
-        if guesser.pokemon.custom:
+        if guesser.is_custom:
             log.debug("Removing custom Pokemon file")
             files_to_remove = [
-                guesser.pokemon.hidden_img_path,
-                guesser.pokemon.revealed_img_path,
-                guesser.pokemon.original_img_path,
+                self.get_pokemon_original_img_path(guesser.pokemon),
+                self.get_pokemon_hidden_img_path(guesser.pokemon),
+                self.get_pokemon_revealed_img_path(guesser.pokemon),
             ]
             for file in files_to_remove:
                 try:
@@ -438,4 +465,19 @@ class GuessController(commands.Cog):
                         os.remove(file)
                 except OSError:
                     log.exception(f"Could not remove custom pokemon file {file}")
-            log.info("Cleaned custom Pokemon files")
+            log.info("Removed custom Pokemon files")
+
+    def get_pokemon_original_img_path(self, pokemon: PokemonData) -> Path:
+        if isinstance(pokemon, CustomPokemonData):
+            return pokemon.original_img_path
+        return ORIGINAL_IMG_DIR / f"{pokemon.id}.png"
+
+    def get_pokemon_hidden_img_path(self, pokemon: PokemonData) -> Path:
+        if isinstance(pokemon, CustomPokemonData):
+            return pokemon.hidden_img_path
+        return HIDDEN_IMG_DIR / f"{pokemon.id}.png"
+
+    def get_pokemon_revealed_img_path(self, pokemon: PokemonData) -> Path:
+        if isinstance(pokemon, CustomPokemonData):
+            return pokemon.revealed_img_path
+        return REVEALED_IMG_DIR / f"{pokemon.id}.png"

@@ -25,10 +25,11 @@ dependencies = [
     "prometheus-client==0.26.0",
     "discord-ext-prometheus==0.2.1",
     "colorama>=0.4.6",
+    "python-slugify>=8.0.4",
 ]
 
 [dependency-groups]
-dev = ["ruff>=0.16.3", "ty>=0.0.72"]
+dev = ["pytest>=9.1.1", "ruff>=0.16.5", "ty>=0.0.75"]
 
 [project.scripts]
 main = "pokeguess.__main__:run"

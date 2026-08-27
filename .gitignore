@@ -138,4 +138,3 @@ dmypy.json
 
 # data
 pokemons/*
-!pokemons/originals/0_Missingno.png

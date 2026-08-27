@@ -1,0 +1,76 @@
+{
+  "title": "Pokedex",
+  "type": "array",
+  "items": {
+    "title": "Pokemon",
+    "type": "object",
+    "required": [
+      "id",
+      "generation",
+      "name",
+      "slug"
+    ],
+    "additionalProperties": false,
+    "properties": {
+      "generation": {
+        "oneOf": [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer"
+          }
+        ]
+      },
+      "id": {
+        "type": "integer"
+      },
+      "name": {
+        "type": "string"
+      },
+      "slug": {
+        "type": "string",
+        "pattern": "^[a-z0-9-]+$"
+      },
+      "aliases": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "image_url": {
+        "type": "string"
+      },
+      "image_path": {
+        "type": "string"
+      },
+      "types": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "enum": [
+            "normal",
+            "fire",
+            "water",
+            "electric",
+            "grass",
+            "ice",
+            "fighting",
+            "poison",
+            "ground",
+            "flying",
+            "psychic",
+            "bug",
+            "rock",
+            "ghost",
+            "dragon",
+            "dark",
+            "steel",
+            "fairy"
+          ]
+        },
+        "maxItems": 2
+      }
+    }
+  }
+}

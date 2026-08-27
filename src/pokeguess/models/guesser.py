@@ -13,7 +13,7 @@ from discord import (
     VoiceChannel,
 )
 
-from pokeguess.models.pokemon import Pokemon
+from pokeguess.models.pokemon import CustomPokemonData, PokemonData
 
 
 @dataclass
@@ -21,7 +21,7 @@ class Guesser:
     channel: (
         VoiceChannel | StageChannel | TextChannel | Thread | DMChannel | GroupChannel
     )
-    pokemon: Pokemon
+    pokemon: PokemonData
     start_time: datetime
     end_time: datetime
     author: Member | User
@@ -29,3 +29,14 @@ class Guesser:
     winning_message: Message | None = None
     winner: Member | None = None
     hints_given = 0
+
+    @property
+    def is_custom(self) -> bool:
+        return isinstance(self.pokemon, CustomPokemonData)
+
+    def guess(self, s: str) -> bool:
+        return (
+            s == self.pokemon.slug
+            or s == self.pokemon.name.lower()
+            or s in self.pokemon.aliases
+        )

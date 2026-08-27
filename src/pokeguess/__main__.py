@@ -15,26 +15,21 @@ from pokeguess.services.image_service import ImageService
 from pokeguess.services.pokedex_service import PokedexService
 
 POKEMON_DIR = Path("./pokemons")
-ORIGINAL_DIR = POKEMON_DIR / "originals"
-REVEALED_DIR = POKEMON_DIR / "revealed"
-HIDDEN_DIR = POKEMON_DIR / "hidden"
+ORIGINAL_IMG_DIR = POKEMON_DIR / "originals"
+REVEALED_IMG_DIR = POKEMON_DIR / "revealed"
+HIDDEN_IMG_DIR = POKEMON_DIR / "hidden"
 
 
 log = logging.getLogger(__name__.replace("__main__", "main"))
 
 
-def download_pokemon_images():
-    log.debug("Downloading pokemon images")
-    PokedexService().download_all_pokemon()
-
-
 def process_pokemon_images():
     log.debug("Processing pokemon images")
     image_service = ImageService()
-    for file in os.listdir(ORIGINAL_DIR):
-        original_path = Path(ORIGINAL_DIR, file)
-        hidden_path = Path(HIDDEN_DIR, file)
-        revealed_path = Path(REVEALED_DIR, file)
+    for file in os.listdir(ORIGINAL_IMG_DIR):
+        original_path = ORIGINAL_IMG_DIR / file
+        hidden_path = HIDDEN_IMG_DIR / file
+        revealed_path = REVEALED_IMG_DIR / file
 
         # Already processed, skipping
         if hidden_path.exists() and revealed_path.exists():
@@ -92,7 +87,8 @@ async def main():
     log_bot_commands(bot)
 
     # Prepare the data before running the bot
-    download_pokemon_images()
+    pokedex_service = PokedexService()
+    pokedex_service.download_all_images()
     process_pokemon_images()
 
     async with bot:  # this will close the client session and remove the "Unclosed client session" error

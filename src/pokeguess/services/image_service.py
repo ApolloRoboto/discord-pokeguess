@@ -97,7 +97,7 @@ class ImageService:
     def process_image(
         self, original_path: Path, hidden_path: Path, revealed_path: Path
     ):
-        log.info(f"Starting to process {original_path}")
+        log.debug(f"Starting to process {original_path}")
         start_time = datetime.now(UTC)
 
         # Creating output directories
@@ -157,9 +157,9 @@ class ImageService:
             ]
         )
 
-        log.info(f"Saving {hidden_path}")
+        log.debug(f"Saving {hidden_path}")
         hidden_img.save(hidden_path)
-        log.info(f"Saving {revealed_path}")
+        log.debug(f"Saving {revealed_path}")
         revealed_img.save(revealed_path)
 
-        log.info(f"Done [{datetime.now(UTC) - start_time}]")
+        log.info(f"Done processing {original_path} [{datetime.now(UTC) - start_time}]")

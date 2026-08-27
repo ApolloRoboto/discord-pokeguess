@@ -1,0 +1,16 @@
+{
+  "json.schemas": [
+    {
+      "fileMatch": [
+        "resources/pokedex.json",
+      ],
+      "url": "./resources/pokedex.schema.json"
+    }
+  ],
+  "files.exclude": {
+    ".venv": true,
+    ".ruff_cache": true,
+    ".$*.drawio.bkp": true,
+    ".pytest_cache": true,
+  }
+}

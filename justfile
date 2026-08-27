@@ -20,9 +20,12 @@ build:
 run:
     uv run main
 
+test:
+    uv run pytest
+
 check:
-    uv run ruff check
     uv run ty check
+    uv run ruff check
 
 [unix]
 clean:

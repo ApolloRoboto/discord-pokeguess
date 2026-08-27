@@ -130,7 +130,7 @@ class HiddenEmbed(Embed):
 
         self.description = "Ends " + datetime_to_discord_timestamp(guesser.end_time)
 
-        if guesser.pokemon.custom:
+        if guesser.is_custom:
             # Note: author.mention doesn't work in embed footer
             self.set_footer(text=f"Custom image from {guesser.author.display_name}")
 
@@ -146,7 +146,7 @@ class RevealedEmbed(Embed):
         self.color = guessing_color
         self.title = f"It's {guesser.pokemon.name}!"
 
-        number = "Custom" if guesser.pokemon.custom else f"#{guesser.pokemon.id}"
+        number = "Custom" if guesser.is_custom else f"#{guesser.pokemon.id}"
         self.add_field(name="Number", value=number)
         self.add_field(name="Total Guesses", value=guesser.total_guesses)
 

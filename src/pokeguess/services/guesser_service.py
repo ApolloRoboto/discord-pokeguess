@@ -1,5 +1,4 @@
 import logging
-import os
 from collections.abc import Awaitable
 from datetime import UTC, datetime
 from pathlib import Path
@@ -18,7 +17,6 @@ from discord.ext import tasks
 from prometheus_client import Counter
 
 from pokeguess.models.guesser import Guesser
-from pokeguess.models.pokemon import Pokemon
 
 log = logging.getLogger(__name__.removesuffix("_service"))
 
@@ -63,29 +61,6 @@ class GuesserService:
         # pylint: disable=no-member
         self.end_guesses_loop.start()
         # pylint: enable=no-member
-
-    def get_pokemon_by_id(self, pokemon_id):
-        log.info(f"Searching for pokemon #{pokemon_id} in the file system")
-
-        for file in os.listdir(HIDDEN_IMG_DIR):
-            first_underscore = file.index("_")
-            last_dot = len(file) - file[::-1].index(".") - 1
-
-            pokemon_name = file[first_underscore + 1 : last_dot]
-
-            if pokemon_id == int(file[0:first_underscore]):
-                return Pokemon(
-                    id=pokemon_id,
-                    name=pokemon_name,
-                    custom=False,
-                    hidden_img_path=Path(HIDDEN_IMG_DIR, file),
-                    revealed_img_path=Path(REVEALED_IMG_DIR, file),
-                    original_img_path=None,  # Hiding it
-                )
-
-        log.error(f"Pokemon #{pokemon_id} not found")
-
-        return None
 
     def add_guesser(self, guesser: Guesser) -> None:
         if guesser.channel.id in self.active_guess:

@@ -2,39 +2,26 @@ import json
 import logging
 import os
 import shutil
-from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 
 import requests
 
+from pokeguess.models.pokemon import PokemonData
+
 log = logging.getLogger(__name__.removesuffix("_service"))
 
 # TODO: needs to be configurations
 OUT_DIR = Path("./pokemons/originals/")
-POKEDEX = Path("./pokemons/pokedex.json")
+POKEDEX = Path("./resources/pokedex.json")
 
 
-@dataclass
-class Pokemon:
-    abilities: list[str]
-    detailPageURL: str
-    weight: str
-    weakness: list[str]
-    number: str
-    height: int
-    collectibles_slug: str
-    featured: bool
-    slug: str
-    name: str
-    ThumbnailAltText: str
-    ThumbnailImage: str
-    id: int
-    type: list[str]
+class PokedexServiceException(Exception):
+    pass
 
-    @property
-    def file_name(self) -> str:
-        return str(self.id) + "_" + self.name.replace(":", "") + ".png"
+
+class PokedexMissingException(PokedexServiceException):
+    pass
 
 
 class PokedexService:
@@ -47,75 +34,97 @@ class PokedexService:
         # validate the variable to be a directory
         if not OUT_DIR.is_dir():
             raise ValueError(f"{OUT_DIR} has to be a directory")
+        self.pokedex: list[PokemonData] = []
 
-    def get_all_pokemons(self) -> list[Pokemon]:
-        data = {}
+        self.load_pokedex()
 
-        # if the json pokedex exist, use it
-        if POKEDEX.exists():
-            log.info("Opening the pokedex")
-            with open(POKEDEX, "r", encoding="utf-8") as f:
-                data = json.load(f)
+    def load_pokedex(self):
+        with open(POKEDEX, "r") as f:
+            data: list[dict] = json.load(f)
 
-        # else, download the pokedex
-        else:
-            log.info("Getting the Pokedex")
-            url = "https://www.pokemon.com/us/api/pokedex"
+        self.pokedex = [PokemonData.from_dict(d) for d in data]
 
-            log.info("Request to " + url)
-            response = requests.get(url)
+    def get_pokemon_by_id(self, pokemon_id) -> PokemonData | None:
+        for p in self.pokedex:
+            if p.id == pokemon_id:
+                return p
+        return None
 
-            response.raise_for_status()
+    def get_all_pokemons(self) -> list[PokemonData]:
 
-            data = response.json()
+        if not POKEDEX.exists():
+            raise PokedexMissingException()
 
-            log.info("Saving the Pokedex")
-            with open(POKEDEX, "w", encoding="utf-8") as f:
-                json.dump(data, f)
+        log.debug("Reading the pokedex")
+        with open(POKEDEX, "r", encoding="utf-8") as f:
+            data: list[dict] = json.load(f)
 
-        return [Pokemon(**entry) for entry in data]
+        return [PokemonData.from_dict(entry) for entry in data]
 
-    def get_downloaded_ids(self) -> list[int]:
-        """Look into the out directory for files that was already downloaded"""
+    def get_downloaded_image_ids(self) -> list[int]:
+        """Look into the out directory for images that was already downloaded"""
 
         ids: list[int] = []
+
         for file in os.listdir(OUT_DIR):
-            ids.append(int(file.split("_")[0]))
+            ids.append(int(file.split(".")[0]))
 
         return ids
 
-    def download_image(self, pokemon: Pokemon):
-        start_time = datetime.now(UTC)
-        log.info(f"Starting download of pokemon #{pokemon.id} {pokemon.name}")
+    def download_image(self, pokemon: PokemonData):
+        if pokemon.image_url is None:
+            return
 
-        response = requests.get(pokemon.ThumbnailImage, stream=True)
+        start_time = datetime.now(UTC)
+        log.debug(f"Starting image download of pokemon #{pokemon.id} {pokemon.slug}")
+
+        response = requests.get(pokemon.image_url, stream=True)
 
         response.raise_for_status()
 
-        file_path = Path(OUT_DIR, pokemon.file_name)
+        file_path = OUT_DIR / f"{pokemon.id}.png"
 
         with open(file_path, "wb") as f:
             shutil.copyfileobj(response.raw, f)
 
-        log.info(f"Download successful [{datetime.now(UTC) - start_time}]")
+        end_time = datetime.now(UTC) - start_time
 
-    def download_all_pokemon(self):
-        # get already downloaded images (in case the script failed at any point)
-        already_downloaded_ids: list[int] = self.get_downloaded_ids()
+        log.info(
+            f"Successfully downloaded image for #{pokemon.id} {pokemon.slug} [{end_time}]"
+        )
+
+    def copy_image(self, pokemon: PokemonData):
+        if pokemon.image_path is None:
+            return
+
+        log.debug(f"Copying image of pokemon #{pokemon.id} {pokemon.slug}")
+
+        file_path = OUT_DIR / f"{pokemon.id}.png"
+
+        shutil.copyfile(pokemon.image_path, file_path)
+
+        log.info(f"Successfully copied image for pokemon #{pokemon.id} {pokemon.slug}")
+
+    def download_all_images(self):
+        # avoid re downloading images
+        start_time = datetime.now(UTC)
+
+        already_downloaded_ids: list[int] = self.get_downloaded_image_ids()
         pokemons = self.get_all_pokemons()
-        log.info(f"There are {len(already_downloaded_ids)} images already downloaded")
+        pokemons = list(filter(lambda x: x.id not in already_downloaded_ids, pokemons))
 
-        # some pokemons are listed twice, but always following, this last id is to skip duplicates
-        last_id = 0
+        log.debug(f"Downloading images, there are {len(pokemons)} images to download")
 
         for pokemon in pokemons:
-            if pokemon.id == last_id:
-                log.info("duplicated id, skipping...")
-                continue
-
             # if this image is already downloaded, skip
             if pokemon.id in already_downloaded_ids:
                 continue
 
-            self.download_image(pokemon)
-            last_id = pokemon.id
+            if pokemon.image_path is not None:
+                self.copy_image(pokemon)
+            if pokemon.image_url is not None:
+                self.download_image(pokemon)
+
+        end_time = datetime.now(UTC)
+
+        log.info(f"Finished downloading all images [{end_time - start_time}]")
