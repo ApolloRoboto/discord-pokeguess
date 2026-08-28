@@ -307,7 +307,7 @@ class GuessController(commands.Cog):
             generation = Choice(name="All", value=0)
 
         if generation.value == 0:  # all
-            id_range = (0, 905)
+            id_range = (0, 1025)
         elif generation.value == 1:
             id_range = (0, 151)
         elif generation.value == 2:
