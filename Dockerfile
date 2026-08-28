@@ -16,7 +16,6 @@ chown -R app_user:app_group /app/pokemons
 exec su app_user -c "exec $*"
 EOF
 
-
 RUN chmod +x /entrypoint.sh
 
 WORKDIR /app

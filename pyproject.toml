@@ -1,6 +1,6 @@
 [project]
 name = "pokeguess"
-version = "0.1.1"
+version = "0.2.0"
 description = "Who's That Pokemon! "
 authors = [{ name = "ApolloRoboto", email = "Apollo_Roboto@outlook.com" }]
 requires-python = ">=3.14"
