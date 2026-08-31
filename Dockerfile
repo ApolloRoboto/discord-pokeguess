@@ -1,6 +1,30 @@
+# inspired from:
+# https://docs.astral.sh/uv/guides/integration/docker/#non-editable-installs
+
+
+FROM python:3.14-slim AS builder
+
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+ENV UV_PYTHON_DOWNLOADS=0
+
+WORKDIR /src
+
+COPY . /src
+
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,source=uv.lock,target=uv.lock \
+    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    uv sync --locked --no-install-project --no-editable
+
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --locked --no-editable
+
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv build --wheel -o dist
+
 FROM python:3.14-slim
 
-COPY ./dist/*.whl /tmp/
+COPY --from=builder /src/dist/*.whl /tmp/
 COPY ./resources/ /app/resources/
 
 RUN pip install --no-cache-dir /tmp/*.whl && \
