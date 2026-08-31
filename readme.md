@@ -6,12 +6,7 @@ Recreate the most nostalgic guessing game into your server. You can also create 
 
 [Invite link](https://discord.com/api/oauth2/authorize?client_id=1052405591680757961&permissions=2147518464&scope=bot)
 
-Find it on:
-- [discord.bots.gg](https://discord.bots.gg/bots/1052405591680757961)
-- [top.gg](https://top.gg/bot/1052405591680757961)
-- [discordbotlist.com](https://discordbotlist.com/bots/pokeguess)
-- [discords.com](https://discords.com/bots/bot/1052405591680757961)
-- [discord.me](https://discord.me/pokeguess)
+Find it on [Top.gg](https://top.gg/bot/1052405591680757961)
 
 # Getting started
 

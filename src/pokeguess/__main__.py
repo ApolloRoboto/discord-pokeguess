@@ -57,14 +57,19 @@ def log_bot_commands(bot):
     log.info(f"Commands ({len(commands)}): {', '.join(commands)}")
 
 
-async def main():
+async def main() -> int:
     load_dotenv()
     prepare_logger()
 
     log.info("Heya!")
 
     if not has_file_permissions():
-        sys.exit(1)
+        return 1
+
+    bot_token = os.environ.get("DISCORD_BOT_TOKEN")
+    if bot_token is None:
+        log.error("environment variable BOT_TOKEN missing")
+        return 1
 
     log.debug(f"Pokemon images will be saved at {POKEMON_DIR.absolute()}")
 
@@ -92,12 +97,14 @@ async def main():
     process_pokemon_images()
 
     async with bot:  # this will close the client session and remove the "Unclosed client session" error
-        await bot.start(os.environ["DISCORD_BOT_TOKEN"])
+        await bot.start(bot_token)
+
+    return 0
 
 
 def run():
     try:
-        asyncio.run(main())
+        sys.exit(asyncio.run(main()))
     except KeyboardInterrupt:
         log.info("Bye Bye!")
         sys.exit(0)

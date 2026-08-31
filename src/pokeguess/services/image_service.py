@@ -105,6 +105,9 @@ class ImageService:
         os.makedirs(revealed_path.parent, exist_ok=True)
 
         original_img = Image.open(original_path, "r")
+        original_img.verify()  # verify closes the file
+        original_img = Image.open(original_path, "r")
+
         original_img = self.scale(original_img, POKEMON_SIZE)
 
         # Convert the image to RGBA

@@ -185,6 +185,7 @@ class GuessController(commands.Cog):
                 self.image_service.process_image(
                     original_path, hidden_path, revealed_path
                 )
+
             except Exception:
                 log.exception("Image processing failed")
                 embed = guess_view.ProcessingFailedEmbed()

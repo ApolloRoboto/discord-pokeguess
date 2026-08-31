@@ -36,12 +36,23 @@ class CustomLoggingFormatter(logging.Formatter):
 
         record_name = record.name.removeprefix("pokeguess.")
 
-        return (
+        message = (
             f"{time_color}{timestamp}{Style.RESET_ALL} "
             f"{level_color}{record.levelname:<7}{Style.RESET_ALL} "
             f"{name_color}{record_name:<20}{Style.RESET_ALL} "
             f"{record.getMessage()} "
         )
+
+        if record.exc_info and not record.exc_text:
+            record.exc_text = self.formatException(record.exc_info)
+        if record.exc_text:
+            message += f"\n{Fore.RED}{record.exc_text}{Style.RESET_ALL}"
+        if record.stack_info:
+            message += (
+                f"\n{Fore.RED}{self.formatStack(record.stack_info)}{Style.RESET_ALL}"
+            )
+
+        return message
 
 
 def prepare_logger():
@@ -53,6 +64,8 @@ def prepare_logger():
     handler = logging.StreamHandler(sys.stdout)
     handler.setFormatter(CustomLoggingFormatter())
     handler.addFilter(PackageLoggingFilter())
-
     root.addHandler(handler)
-    root.addHandler(PrometheusLoggingHandler())
+
+    handler = PrometheusLoggingHandler()
+    handler.addFilter(PackageLoggingFilter())
+    root.addHandler(handler)

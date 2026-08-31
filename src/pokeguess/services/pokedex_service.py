@@ -1,6 +1,5 @@
 import json
 import logging
-import os
 import shutil
 from datetime import UTC, datetime
 from pathlib import Path
@@ -29,7 +28,7 @@ class PokedexService:
         # create directory if it does not exists
         if not OUT_DIR.exists():
             log.info(f"Creating directory {OUT_DIR}")
-            os.makedirs(OUT_DIR)
+            OUT_DIR.mkdir(exist_ok=True)
 
         # validate the variable to be a directory
         if not OUT_DIR.is_dir():
@@ -66,8 +65,8 @@ class PokedexService:
 
         ids: list[int] = []
 
-        for file in os.listdir(OUT_DIR):
-            ids.append(int(file.split(".")[0]))
+        for file in OUT_DIR.iterdir():
+            ids.append(int(file.name.split(".")[0]))
 
         return ids
 

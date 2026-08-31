@@ -1,6 +1,6 @@
 [project]
 name = "pokeguess"
-version = "0.2.0"
+version = "0.2.1"
 description = "Who's That Pokemon! "
 authors = [{ name = "ApolloRoboto", email = "Apollo_Roboto@outlook.com" }]
 requires-python = ">=3.14"
@@ -29,7 +29,7 @@ dependencies = [
 ]
 
 [dependency-groups]
-dev = ["pytest>=9.1.1", "ruff>=0.16.5", "ty>=0.0.75"]
+dev = ["pytest>=9.1.1", "ruff>=0.16.5", "ty>=0.0.76"]
 
 [project.scripts]
 main = "pokeguess.__main__:run"

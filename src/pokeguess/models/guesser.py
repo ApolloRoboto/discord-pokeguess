@@ -28,7 +28,7 @@ class Guesser:
     total_guesses: int = 0
     winning_message: Message | None = None
     winner: Member | None = None
-    hints_given = 0
+    hints_given: int = 0
 
     @property
     def is_custom(self) -> bool:
