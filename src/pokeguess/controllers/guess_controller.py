@@ -112,9 +112,7 @@ class GuessController(commands.Cog):
         image: discord.Attachment,
         timeout: Range[int, 15, 300] = 60,
     ):
-        log.debug(
-            f"Interaction: pokeguesscustom, name: '{name}', image filename: '{image.filename}', timeout: {timeout}"
-        )
+        log.debug(f"Interaction: pokeguesscustom, timeout: {timeout}")
 
         # do I have permission to read and send messages here?
         permissions = interaction.app_permissions
@@ -148,9 +146,15 @@ class GuessController(commands.Cog):
             await interaction.response.send_message(embed=embed, ephemeral=True)
             return
 
+        if len(name) > 50:
+            log.warning(f"Name is too long, was {len(name)}")
+            embed = guess_view.InvalidNameEmbed()
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+            return
+
         # max 5 minutes
         if timeout > 300:
-            log.warning(f"Invalid timeout, was {timeout}")
+            log.warning(f"Timeout is too long, was {timeout}")
             embed = guess_view.InvalidTimeoutEmbed()
             await interaction.response.send_message(embed=embed, ephemeral=True)
             return

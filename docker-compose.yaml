@@ -1,7 +1,7 @@
 name: pokeguess
-services:
 
-  discord-bot:
+services:
+  bot:
     build: ./
     restart: "unless-stopped"
     environment:

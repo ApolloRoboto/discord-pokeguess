@@ -75,6 +75,12 @@ class InvalidTimeoutEmbed(ErrorEmbed):
         self.title = "Use A timeout between 15 and 300 seconds."
 
 
+class InvalidNameEmbed(ErrorEmbed):
+    def __init__(self):
+        super().__init__()
+        self.title = "That name is too long!\nTry has to be less than 50 characters."
+
+
 class AlreadyActiveEmbed(ErrorEmbed):
     def __init__(self):
         super().__init__()
