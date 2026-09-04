@@ -67,7 +67,7 @@ async def main() -> int:
         return 1
 
     bot_token = os.environ.get("DISCORD_BOT_TOKEN")
-    if bot_token is None:
+    if bot_token is None or bot_token == "":
         log.error("environment variable BOT_TOKEN missing")
         return 1
 
@@ -93,7 +93,7 @@ async def main() -> int:
 
     # Prepare the data before running the bot
     pokedex_service = PokedexService()
-    pokedex_service.download_all_images()
+    await pokedex_service.download_all_images()
     process_pokemon_images()
 
     async with bot:  # this will close the client session and remove the "Unclosed client session" error

@@ -1,6 +1,6 @@
 [project]
 name = "pokeguess"
-version = "0.2.2"
+version = "0.2.3"
 description = "Who's That Pokemon! "
 authors = [{ name = "ApolloRoboto", email = "Apollo_Roboto@outlook.com" }]
 requires-python = ">=3.14"
@@ -26,6 +26,8 @@ dependencies = [
     "discord-ext-prometheus==0.2.1",
     "colorama>=0.4.6",
     "python-slugify>=8.0.4",
+    "aiohttp>=3.14.3",
+    "aiofiles>=25.1.0",
 ]
 
 [dependency-groups]

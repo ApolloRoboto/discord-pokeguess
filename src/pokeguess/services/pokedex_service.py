@@ -4,7 +4,8 @@ import shutil
 from datetime import UTC, datetime
 from pathlib import Path
 
-import requests
+import aiofiles
+import aiohttp
 
 from pokeguess.models.pokemon import PokemonData
 
@@ -34,6 +35,7 @@ class PokedexService:
         if not OUT_DIR.is_dir():
             raise ValueError(f"{OUT_DIR} has to be a directory")
         self.pokedex: list[PokemonData] = []
+        self.httpsession = aiohttp.ClientSession()
 
         self.load_pokedex()
 
@@ -70,21 +72,20 @@ class PokedexService:
 
         return ids
 
-    def download_image(self, pokemon: PokemonData):
+    async def download_image(self, pokemon: PokemonData):
         if pokemon.image_url is None:
             return
 
         start_time = datetime.now(UTC)
         log.debug(f"Starting image download of pokemon #{pokemon.id} {pokemon.slug}")
 
-        response = requests.get(pokemon.image_url, stream=True)
-
-        response.raise_for_status()
-
         file_path = OUT_DIR / f"{pokemon.id}.png"
 
-        with open(file_path, "wb") as f:
-            shutil.copyfileobj(response.raw, f)
+        async with self.httpsession.get(pokemon.image_url) as response:
+            response.raise_for_status()
+            async with aiofiles.open(file_path, "wb") as f:
+                async for chunk in response.content.iter_chunked(65536):
+                    await f.write(chunk)
 
         end_time = datetime.now(UTC) - start_time
 
@@ -104,7 +105,7 @@ class PokedexService:
 
         log.info(f"Successfully copied image for pokemon #{pokemon.id} {pokemon.slug}")
 
-    def download_all_images(self):
+    async def download_all_images(self):
         # avoid re downloading images
         start_time = datetime.now(UTC)
 
@@ -122,7 +123,7 @@ class PokedexService:
             if pokemon.image_path is not None:
                 self.copy_image(pokemon)
             if pokemon.image_url is not None:
-                self.download_image(pokemon)
+                await self.download_image(pokemon)
 
         end_time = datetime.now(UTC)
 
