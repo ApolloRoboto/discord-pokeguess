@@ -1,9 +1,11 @@
 import logging
 import os
 from datetime import UTC, datetime
+from io import BytesIO
 from pathlib import Path
-from typing import cast
 
+import aiofiles
+import numpy as np
 from PIL import Image
 
 log = logging.getLogger(__name__.removesuffix("_service"))
@@ -31,31 +33,26 @@ class ImageService:
         offset: tuple[int, int],
     ) -> Image.Image:
         img = img.convert("RGBA")
+        arr = np.array(img)  # shape (H, W, 4)
+        alpha = arr[:, :, 3].astype(np.float32)
+        opacity = (alpha * (color[3] / 255)).astype(np.uint8)
 
-        silhouette = Image.new(img.mode, img.size, (0, 0, 0, 0))
+        out = np.zeros_like(arr)
+        out[:, :, 0] = color[0]
+        out[:, :, 1] = color[1]
+        out[:, :, 2] = color[2]
+        out[:, :, 3] = opacity
 
-        for x in range(img.size[0]):
-            if (x + offset[0]) >= img.size[0] or (x + offset[0]) < 0:
-                continue
+        shifted = np.zeros_like(out)
+        dx, dy = offset
+        h, w = arr.shape[:2]
+        src_x0, src_x1 = max(0, -dx), min(w, w - dx)
+        dst_x0, dst_x1 = max(0, dx), min(w, w + dx)
+        src_y0, src_y1 = max(0, -dy), min(h, h - dy)
+        dst_y0, dst_y1 = max(0, dy), min(h, h + dy)
 
-            for y in range(img.size[1]):
-                original_pos = (x, y)
-                original_pixel = img.getpixel(original_pos)
-
-                original_pixel = cast(tuple[int, int, int, int], original_pixel)
-
-                silhouette_pos = (x + offset[0], y + offset[1])
-
-                if silhouette_pos[1] >= img.size[1] or silhouette_pos[1] < 0:
-                    continue
-
-                opacity = int((color[3] / 255) * original_pixel[3])
-
-                new_pixel = (color[0], color[1], color[2], opacity)
-
-                silhouette.putpixel(silhouette_pos, new_pixel)
-
-        return silhouette
+        shifted[dst_y0:dst_y1, dst_x0:dst_x1] = out[src_y0:src_y1, src_x0:src_x1]
+        return Image.fromarray(shifted, mode="RGBA")
 
     def layer_images(self, imgs: list[Image.Image]) -> Image.Image:
         first = imgs[0]
@@ -88,7 +85,7 @@ class ImageService:
 
         return img.resize(new_size)
 
-    def process_image(
+    async def process_image(
         self, original_path: Path, hidden_path: Path, revealed_path: Path
     ):
         log.debug(f"Starting to process {original_path}")
@@ -152,9 +149,25 @@ class ImageService:
             ]
         )
 
-        log.debug(f"Saving {hidden_path}")
-        hidden_img.save(hidden_path)
-        log.debug(f"Saving {revealed_path}")
-        revealed_img.save(revealed_path)
+        await save_image(hidden_img, hidden_path)
+        await save_image(revealed_img, revealed_path)
 
         log.info(f"Done processing {original_path} [{datetime.now(UTC) - start_time}]")
+
+
+async def save_image(image: Image.Image, path: Path) -> None:
+    # https://stackoverflow.com/a/70308690/10101321
+
+    log.debug(f"Saving {path}")
+
+    extension = path.name.split(".")
+    if len(extension) > 1:
+        extension = extension[1]
+    else:
+        extension = None
+
+    buffer = BytesIO()
+    image.save(buffer, format=extension)
+
+    async with aiofiles.open(path, "wb") as file:
+        await file.write(buffer.getbuffer())

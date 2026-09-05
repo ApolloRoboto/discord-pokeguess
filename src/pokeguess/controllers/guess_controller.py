@@ -194,7 +194,7 @@ class GuessController(commands.Cog):
         self.image_being_processed.add(interaction.channel.id)
         async with interaction.channel.typing():
             try:
-                self.image_service.process_image(
+                await self.image_service.process_image(
                     original_path, hidden_path, revealed_path
                 )
 

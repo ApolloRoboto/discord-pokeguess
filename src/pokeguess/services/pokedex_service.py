@@ -44,13 +44,14 @@ class PokedexService:
         # validate the variable to be a directory
         if not original_dir.is_dir():
             raise ValueError(f"{original_dir} has to be a directory")
+
         self.pokedex: list[PokemonData] = []
 
-        self.load_pokedex()
-
-    def load_pokedex(self):
-        with open(self.pokedex_file, "r") as f:
-            data: list[dict] = json.load(f)
+    async def load_pokedex(self):
+        log.debug("Reading the pokedex")
+        async with aiofiles.open(self.pokedex_file, "r") as f:
+            content = await f.read()
+            data: list[dict] = json.loads(content)
 
         self.pokedex = [PokemonData.from_dict(d) for d in data]
 
@@ -59,14 +60,6 @@ class PokedexService:
             if p.id == pokemon_id:
                 return p
         return None
-
-    def get_all_pokemons(self) -> list[PokemonData]:
-
-        log.debug("Reading the pokedex")
-        with open(self.pokedex_file, "r", encoding="utf-8") as f:
-            data: list[dict] = json.load(f)
-
-        return [PokemonData.from_dict(entry) for entry in data]
 
     def get_downloaded_image_ids(self) -> list[int]:
         """Look into the out directory for images that was already downloaded"""
@@ -116,8 +109,9 @@ class PokedexService:
         start_time = datetime.now(UTC)
 
         already_downloaded_ids: list[int] = self.get_downloaded_image_ids()
-        pokemons = self.get_all_pokemons()
-        pokemons = list(filter(lambda x: x.id not in already_downloaded_ids, pokemons))
+        pokemons = list(
+            filter(lambda x: x.id not in already_downloaded_ids, self.pokedex)
+        )
 
         log.debug(f"Downloading images, there are {len(pokemons)} images to download")
 

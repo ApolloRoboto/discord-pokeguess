@@ -58,15 +58,17 @@ def create_topgg_service(http_client: aiohttp.ClientSession) -> services.TopggSe
     return services.TopggService(token, http_client)
 
 
-def create_pokedex_service(
+async def create_pokedex_service(
     http_client: aiohttp.ClientSession,
 ) -> services.PokedexService:
 
-    return PokedexService(
+    s = PokedexService(
         http_client,
         pokedex_file=RESOURCE_DIR / "pokedex.json",
         original_dir=ORIGINAL_IMG_DIR,
     )
+    await s.load_pokedex()
+    return s
 
 
 def create_image_service() -> services.ImageService:
@@ -77,7 +79,7 @@ def create_guesser_service() -> services.GuesserService:
     return services.GuesserService()
 
 
-def process_pokemon_images(image_service: services.ImageService):
+async def process_pokemon_images(image_service: services.ImageService):
     log.debug("Processing pokemon images")
 
     for file in os.listdir(ORIGINAL_IMG_DIR):
@@ -89,7 +91,7 @@ def process_pokemon_images(image_service: services.ImageService):
         if hidden_path.exists() and revealed_path.exists():
             continue
 
-        image_service.process_image(
+        await image_service.process_image(
             original_path=original_path,
             hidden_path=hidden_path,
             revealed_path=revealed_path,
@@ -139,7 +141,7 @@ async def main() -> int:
 
     bot = create_bot()
     http_client = create_http_client()
-    pokedex_service = create_pokedex_service(http_client)
+    pokedex_service = await create_pokedex_service(http_client)
     image_service = create_image_service()
     guesser_service = create_guesser_service()
 
@@ -161,7 +163,7 @@ async def main() -> int:
 
     # Prepare the data before running the bot
     await pokedex_service.download_all_images()
-    process_pokemon_images(image_service)
+    await process_pokemon_images(image_service)
 
     async with bot:  # this will close the client session and remove the "Unclosed client session" error
         await bot.start(bot_token)
