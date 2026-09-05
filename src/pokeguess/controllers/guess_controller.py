@@ -18,6 +18,7 @@ from discord import (
 )
 from discord.app_commands import Choice, Range
 from discord.ext import commands
+from discord.ext.commands import AutoShardedBot
 from prometheus_client import Counter
 from slugify import slugify
 
@@ -85,11 +86,18 @@ HINT_REQUEST_TEXT = {
 class GuessController(commands.Cog):
     """Handles request related to the pokeguess command."""
 
-    def __init__(self, bot: commands.Bot):
+    def __init__(
+        self,
+        bot: AutoShardedBot,
+        pokedex_service: PokedexService,
+        image_service: ImageService,
+        guesser_service: GuesserService,
+    ):
         self.bot = bot
-        self.guesser_service = GuesserService()
-        self.image_service = ImageService()
-        self.pokedex_service = PokedexService()
+        self.pokedex_service = pokedex_service
+
+        self.guesser_service = guesser_service
+        self.image_service = image_service
 
         # register the on_guess_end method to be called
         self.guesser_service.on_guesser_end_event.append(self.on_guess_end)

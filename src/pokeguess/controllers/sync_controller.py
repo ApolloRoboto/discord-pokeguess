@@ -1,12 +1,13 @@
 import logging
 
 from discord.ext import commands
+from discord.ext.commands import AutoShardedBot
 
 log = logging.getLogger(__name__.removesuffix("_controller"))
 
 
 class SyncController(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: AutoShardedBot):
         self.bot = bot
         self.has_synced = False  # prevent sync after reconnection
 

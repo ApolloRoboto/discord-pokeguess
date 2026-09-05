@@ -1,16 +1,16 @@
 import logging
 
-from discord import Guild
+from discord import AutoShardedClient, Guild
 from discord.ext import commands
 from discord.ext.commands import CommandNotFound
 
-log = logging.getLogger("event")
+log = logging.getLogger(__name__.removesuffix("_controller"))
 
 
 class EventLoggerController(commands.Cog):
     """Log some common interactions with the bot."""
 
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: AutoShardedClient):
         self.bot = bot
 
         @bot.event

@@ -39,7 +39,7 @@ class CustomLoggingFormatter(logging.Formatter):
         message = (
             f"{time_color}{timestamp}{Style.RESET_ALL} "
             f"{level_color}{record.levelname:<7}{Style.RESET_ALL} "
-            f"{name_color}{record_name:<20}{Style.RESET_ALL} "
+            f"{name_color}{record_name:<24}{Style.RESET_ALL} "
             f"{record.getMessage()} "
         )
 

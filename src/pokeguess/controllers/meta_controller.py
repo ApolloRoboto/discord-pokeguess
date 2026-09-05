@@ -1,6 +1,6 @@
 import logging
 
-from discord import Interaction, app_commands
+from discord import AutoShardedClient, Interaction, app_commands
 from discord.ext import commands
 
 from pokeguess.views import meta_view
@@ -11,7 +11,7 @@ log = logging.getLogger(__name__.removesuffix("_controller"))
 class MetaController(commands.Cog):
     """Handles meta requests, this is more about giving information and resources to the user"""
 
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: AutoShardedClient):
         self.bot = bot
 
     @app_commands.command(

@@ -1,7 +1,7 @@
 import logging
-import os
 
 from discord.ext import commands, tasks
+from discord.ext.commands import AutoShardedBot
 
 from pokeguess.services.topgg_service import TopggService
 
@@ -21,16 +21,11 @@ class TopggControllerMissingProjectIdException(TopggControllerException):
 
 
 class TopggController(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: AutoShardedBot, topgg_service: TopggService):
         self.bot = bot
+        self.topgg_client = topgg_service
 
         self.has_posted_commands = False
-
-        token = os.getenv("TOPGG_TOKEN")
-        if token is None or token == "":
-            raise TopggControllerMissingTokenException()
-
-        self.topgg_client = TopggService(token)
 
     @commands.Cog.listener()
     async def on_ready(self):

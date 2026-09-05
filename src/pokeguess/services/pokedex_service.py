@@ -11,10 +11,6 @@ from pokeguess.models.pokemon import PokemonData
 
 log = logging.getLogger(__name__.removesuffix("_service"))
 
-# TODO: needs to be configurations
-OUT_DIR = Path("./pokemons/originals/")
-POKEDEX = Path("./resources/pokedex.json")
-
 
 class PokedexServiceException(Exception):
     pass
@@ -25,22 +21,35 @@ class PokedexMissingException(PokedexServiceException):
 
 
 class PokedexService:
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        http_client: aiohttp.ClientSession,
+        pokedex_file: Path,
+        original_dir: Path,
+    ) -> None:
+        self.http_client = http_client
+        self.pokedex_file = pokedex_file
+        self.original_dir = original_dir
+
+        if not self.pokedex_file.exists():
+            raise PokedexMissingException()
+
+        log.debug(f"Pokemon images will be saved at {original_dir.absolute()}")
+
         # create directory if it does not exists
-        if not OUT_DIR.exists():
-            log.info(f"Creating directory {OUT_DIR}")
-            OUT_DIR.mkdir(exist_ok=True)
+        if not original_dir.exists():
+            log.info(f"Creating directory {original_dir}")
+            original_dir.mkdir(exist_ok=True)
 
         # validate the variable to be a directory
-        if not OUT_DIR.is_dir():
-            raise ValueError(f"{OUT_DIR} has to be a directory")
+        if not original_dir.is_dir():
+            raise ValueError(f"{original_dir} has to be a directory")
         self.pokedex: list[PokemonData] = []
-        self.httpsession = aiohttp.ClientSession()
 
         self.load_pokedex()
 
     def load_pokedex(self):
-        with open(POKEDEX, "r") as f:
+        with open(self.pokedex_file, "r") as f:
             data: list[dict] = json.load(f)
 
         self.pokedex = [PokemonData.from_dict(d) for d in data]
@@ -53,11 +62,8 @@ class PokedexService:
 
     def get_all_pokemons(self) -> list[PokemonData]:
 
-        if not POKEDEX.exists():
-            raise PokedexMissingException()
-
         log.debug("Reading the pokedex")
-        with open(POKEDEX, "r", encoding="utf-8") as f:
+        with open(self.pokedex_file, "r", encoding="utf-8") as f:
             data: list[dict] = json.load(f)
 
         return [PokemonData.from_dict(entry) for entry in data]
@@ -67,7 +73,7 @@ class PokedexService:
 
         ids: list[int] = []
 
-        for file in OUT_DIR.iterdir():
+        for file in self.original_dir.iterdir():
             ids.append(int(file.name.split(".")[0]))
 
         return ids
@@ -79,9 +85,9 @@ class PokedexService:
         start_time = datetime.now(UTC)
         log.debug(f"Starting image download of pokemon #{pokemon.id} {pokemon.slug}")
 
-        file_path = OUT_DIR / f"{pokemon.id}.png"
+        file_path = self.original_dir / f"{pokemon.id}.png"
 
-        async with self.httpsession.get(pokemon.image_url) as response:
+        async with self.http_client.get(pokemon.image_url) as response:
             response.raise_for_status()
             async with aiofiles.open(file_path, "wb") as f:
                 async for chunk in response.content.iter_chunked(65536):
@@ -99,7 +105,7 @@ class PokedexService:
 
         log.debug(f"Copying image of pokemon #{pokemon.id} {pokemon.slug}")
 
-        file_path = OUT_DIR / f"{pokemon.id}.png"
+        file_path = self.original_dir / f"{pokemon.id}.png"
 
         shutil.copyfile(pokemon.image_path, file_path)
 

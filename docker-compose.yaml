@@ -5,8 +5,10 @@ services:
     build: ./
     restart: "unless-stopped"
     environment:
+      - TOPGG_ENABLED=true
       - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN}
       - DISCORD_APPLICATION_ID=${DISCORD_APPLICATION_ID}
+      - TOPGG_TOKEN=${TOPGG_TOKEN}
     volumes:
       - ./pokemons:/app/pokemons
     ports:

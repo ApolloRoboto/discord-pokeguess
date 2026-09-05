@@ -9,7 +9,6 @@ from PIL import Image
 log = logging.getLogger(__name__.removesuffix("_service"))
 
 
-BACKGROUND_PATH = Path("./resources/background.png")
 BACKGROUND_SIZE = (260, 260)
 POKEMON_SIZE = (215, 215)
 MAIN_COLOR = (16, 88, 178, 255)
@@ -20,9 +19,10 @@ SHADOW_OFFSET = (-6, 8)
 
 
 class ImageService:
-    def __init__(self) -> None:
-        # Cached background image
-        self._background_image: Image.Image | None = None
+    def __init__(self, background_file: Path) -> None:
+        self.background_file = background_file
+
+        self.background_image = Image.open(background_file).resize(BACKGROUND_SIZE)
 
     def make_silhouette(
         self,
@@ -75,12 +75,6 @@ class ImageService:
 
         return result
 
-    def get_background_image(self):
-        if self._background_image is None:
-            self._background_image = Image.open(BACKGROUND_PATH).resize(BACKGROUND_SIZE)
-
-        return self._background_image
-
     def scale(self, img: Image.Image, scale: tuple[int, int]):
         """Scales while preserving the image ratio"""
         new_size = img.size
@@ -122,8 +116,6 @@ class ImageService:
             ]
         )
 
-        background_img = self.get_background_image()
-
         shadow_img = self.make_silhouette(original_img, SHADOW_COLOR, SHADOW_OFFSET)
 
         silhouette_img = self.layer_images(
@@ -148,14 +140,14 @@ class ImageService:
 
         hidden_img = self.layer_images(
             [
-                background_img,
+                self.background_image,
                 silhouette_img,
             ]
         )
 
         revealed_img = self.layer_images(
             [
-                background_img,
+                self.background_image,
                 pokemon_img,
             ]
         )

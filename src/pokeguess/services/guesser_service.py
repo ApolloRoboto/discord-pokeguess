@@ -1,9 +1,9 @@
 import logging
 from collections.abc import Awaitable
 from datetime import UTC, datetime
-from pathlib import Path
 from typing import Protocol
 
+import prometheus_client
 from discord import (
     DMChannel,
     GroupChannel,
@@ -14,16 +14,12 @@ from discord import (
     VoiceChannel,
 )
 from discord.ext import tasks
-from prometheus_client import Counter
 
 from pokeguess.models.guesser import Guesser
 
 log = logging.getLogger(__name__.removesuffix("_service"))
 
-HIDDEN_IMG_DIR = Path("./pokemons/hidden/")
-REVEALED_IMG_DIR = Path("./pokemons/revealed/")
-
-POKEGUESS_RESULT_COUNTER = Counter(
+POKEGUESS_RESULT_COUNTER = prometheus_client.Counter(
     "pokeguess_guess_result",
     "The outcome of a pokeguess, did the users got the right answer?",
     ["outcome"],
@@ -53,6 +49,7 @@ class GuesserEndEvent(Protocol):
 
 class GuesserService:
     def __init__(self) -> None:
+
         # Guesser by channel_id
         self.active_guess: dict[int, Guesser] = {}
 
