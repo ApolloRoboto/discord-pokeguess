@@ -133,6 +133,7 @@ async def main() -> int:
     prepare_logger()
 
     log.info("Heya!")
+    log.info(f"Version: {version('pokeguess')}")
 
     if not has_file_permissions():
         return 1

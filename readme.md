@@ -1,5 +1,12 @@
 # PokeGuess
 
+![Python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=fff)
+![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=fff)
+![uv](https://img.shields.io/badge/uv-261230.svg?logo=uv&logoColor=#de5fe9)
+![Ruff](https://custom-icon-badges.demolab.com/badge/Ruff-261230.svg?logo=ruff-logo)
+![ty](https://custom-icon-badges.demolab.com/badge/ty-261230.svg?logo=ty-astral-logo)
+[![Ko-fi](https://img.shields.io/badge/Ko--fi-FF5E5B?logo=ko-fi&logoColor=white)](https://ko-fi.com/apolloroboto)
+
 Who’s That Pokemon!
 
 Recreate the most nostalgic guessing game into your server. You can also create your own!
